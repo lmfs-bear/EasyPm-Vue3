@@ -56,7 +56,7 @@
                 :key="dict.value"
                 :label="dict.label"
                 :value="dict.value"
-              />
+            />
             </el-select>
           </el-form-item>
           <el-form-item label="状态" prop="status">
@@ -95,7 +95,9 @@
             ></el-date-picker>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+            <el-button type="primary" icon="Search" @click="handleQuery"
+              >搜索</el-button
+            >
             <el-button icon="Refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
@@ -155,7 +157,7 @@
           </el-col>
           <right-toolbar
             v-model:showSearch="showSearch"
-            @queryTable="getList"
+            @queryTable="getWorkList"
             :columns="columns"
           ></right-toolbar>
         </el-row>
@@ -166,6 +168,7 @@
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="50" align="center" />
+          <!-- <el-table-column label="用户ID" align="center" key="id" prop="id" v-if="columns[0].visible" /> -->
           <el-table-column
             label="姓名"
             align="center"
@@ -174,6 +177,7 @@
             v-if="columns[2].visible"
             :show-overflow-tooltip="true"
           />
+          <!-- <el-table-column label="用户昵称" align="center" key="nickName" prop="nickName" v-if="columns[2].visible" :show-overflow-tooltip="true" /> -->
           <el-table-column
             label="课程名称"
             align="center"
@@ -188,49 +192,9 @@
             key="type"
             prop="type"
             v-if="columns[4].visible"
-            :show-overflow-tooltip="true"
+            width="120"
           />
-          <el-table-column
-            label="理论学时"
-            align="center"
-            key="theoreticalHours"
-            prop="theoreticalHours"
-            v-if="columns[5].visible"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
-            label="实验学时"
-            align="center"
-            key="experimentalHours"
-            prop="experimentalHours"
-            v-if="columns[6].visible"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
-            label="总人数"
-            align="center"
-            key="studentNum"
-            prop="studentNum"
-            v-if="columns[7].visible"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
-            label="净工作量"
-            align="center"
-            key="netWorkload"
-            prop="netWorkload"
-            v-if="columns[8].visible"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
-            label="工作量"
-            align="center"
-            key="workload"
-            prop="workload"
-            v-if="columns[9].visible"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
+          <!-- <el-table-column
             label="状态"
             align="center"
             key="status"
@@ -244,16 +208,16 @@
                 @change="handleStatusChange(scope.row)"
               ></el-switch>
             </template>
-          </el-table-column>
+          </el-table-column> -->
           <el-table-column
             label="创建时间"
             align="center"
-            prop="createTime"
+            prop="timeCreate"
             v-if="columns[6].visible"
             width="160"
           >
             <template #default="scope">
-              <span>{{ parseTime(scope.row.createTime) }}</span>
+              <span>{{ parseTime(scope.row.timeCreate) }}</span>
             </template>
           </el-table-column>
           <el-table-column
@@ -310,7 +274,7 @@
           :total="total"
           v-model:page="queryParams.pageNum"
           v-model:limit="queryParams.pageSize"
-          @pagination="getList"
+          @pagination="getWorkList"
         />
       </el-col>
     </el-row>
@@ -343,9 +307,9 @@
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="手机号码" prop="phonenumber">
+            <el-form-item label="手机号码" prop="phone">
               <el-input
-                v-model="form.phonenumber"
+                v-model="form.phone"
                 placeholder="请输入手机号码"
                 maxlength="11"
               />
@@ -536,6 +500,7 @@ const { sys_normal_disable, sys_user_sex, pm_school_year } = proxy.useDict(
   "pm_school_year"
 );
 
+const userList = ref([]);
 const workList = ref([]);
 const open = ref(false);
 const loading = ref(true);
@@ -656,9 +621,20 @@ function getDeptTree() {
   deptTreeSelect().then((response) => {
     deptOptions.value = response.data;
   });
-};
+}
+/** 查询用户列表 */
+// function getList() {
+//   loading.value = true;
+//   listUser(proxy.addDateRange(queryParams.value, dateRange.value)).then(
+//     (res) => {
+//       loading.value = false;
+//       userList.value = res.data;
+//       total.value = res.total;
+//     }
+//   );
+// }
 /** 查询工作量明细列表 */
-function getList() {
+function getWorkList() {
   loading.value = true;
   listTeachingWork(proxy.addDateRange(queryParams.value, dateRange.value)).then(
     (res) => {
@@ -676,7 +652,7 @@ function handleNodeClick(data) {
 /** 搜索按钮操作 */
 function handleQuery() {
   queryParams.value.pageNum = 1;
-  getList();
+  getWorkList();
 }
 /** 重置按钮操作 */
 function resetQuery() {
@@ -695,7 +671,7 @@ function handleDelete(row) {
       return delUser(userIds);
     })
     .then(() => {
-      getList();
+      getWorkList();
       proxy.$modal.msgSuccess("删除成功");
     })
     .catch(() => {});
@@ -795,7 +771,7 @@ const handleFileSuccess = (response, file, fileList) => {
     "导入结果",
     { dangerouslyUseHTMLString: true }
   );
-  getList();
+  getWorkList();
 };
 /** 提交上传文件 */
 function submitFileForm() {
@@ -809,6 +785,7 @@ function reset() {
     userName: undefined,
     nickName: undefined,
     password: undefined,
+    phone: undefined,
     email: undefined,
     sex: undefined,
     status: "0",
@@ -857,13 +834,13 @@ function submitForm() {
         updateUser(form.value).then((response) => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
-          getList();
+          getWorkList();
         });
       } else {
         addUser(form.value).then((response) => {
           proxy.$modal.msgSuccess("新增成功");
           open.value = false;
-          getList();
+          getWorkList();
         });
       }
     }
@@ -871,5 +848,6 @@ function submitForm() {
 }
 
 getDeptTree();
-getList();
+// getList();
+getWorkList();
 </script>
