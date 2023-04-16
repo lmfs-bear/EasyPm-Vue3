@@ -56,7 +56,7 @@
                 :key="dict.value"
                 :label="dict.label"
                 :value="dict.value"
-            />
+              />
             </el-select>
           </el-form-item>
           <el-form-item label="状态" prop="status">
@@ -168,52 +168,91 @@
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="50" align="center" />
-          <!-- <el-table-column label="用户ID" align="center" key="id" prop="id" v-if="columns[0].visible" /> -->
           <el-table-column
             label="姓名"
             align="center"
             key="teacherName"
             prop="teacherName"
-            v-if="columns[2].visible"
+            v-if="columns[0].visible"
             :show-overflow-tooltip="true"
           />
-          <!-- <el-table-column label="用户昵称" align="center" key="nickName" prop="nickName" v-if="columns[2].visible" :show-overflow-tooltip="true" /> -->
           <el-table-column
             label="课程名称"
             align="center"
             key="courseName"
             prop="courseName"
-            v-if="columns[3].visible"
-            :show-overflow-tooltip="true"
+            v-if="columns[1].visible"
+            width="160"
           />
           <el-table-column
             label="课程类型"
             align="center"
             key="type"
             prop="type"
-            v-if="columns[4].visible"
-            width="120"
+            v-if="columns[2].visible"
+            :show-overflow-tooltip="true"
           />
-          <!-- <el-table-column
+          <el-table-column
+            label="理论学时"
+            align="center"
+            key="theoreticalHours"
+            prop="theoreticalHours"
+            v-if="columns[3].visible"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="实验学时"
+            align="center"
+            key="experimentalHours"
+            prop="experimentalHours"
+            v-if="columns[4].visible"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="总人数"
+            align="center"
+            key="studentNum"
+            prop="studentNum"
+            v-if="columns[5].visible"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="净工作量"
+            align="center"
+            key="netWorkload"
+            prop="netWorkload"
+            v-if="columns[6].visible"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="工作量"
+            align="center"
+            key="workload"
+            prop="workload"
+            v-if="columns[7].visible"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
             label="状态"
             align="center"
             key="status"
-            v-if="columns[5].visible"
+            prop="status"
+            v-if="columns[8].visible"
           >
-            <template #default="scope">
+            <!-- <template #default="scope">
               <el-switch
                 v-model="scope.row.status"
                 active-value="0"
                 inactive-value="1"
                 @change="handleStatusChange(scope.row)"
               ></el-switch>
-            </template>
-          </el-table-column> -->
+            </template> -->
+          </el-table-column>
           <el-table-column
             label="创建时间"
             align="center"
             prop="timeCreate"
-            v-if="columns[6].visible"
+            v-if="columns[9].visible"
             width="160"
           >
             <template #default="scope">
@@ -533,13 +572,16 @@ const upload = reactive({
 });
 // 列显隐信息
 const columns = ref([
-  { key: 0, label: `用户编号`, visible: true },
-  { key: 1, label: `用户名称`, visible: true },
-  { key: 2, label: `用户昵称`, visible: true },
-  { key: 3, label: `部门`, visible: true },
-  { key: 4, label: `手机号码`, visible: true },
-  { key: 5, label: `状态`, visible: true },
-  { key: 6, label: `创建时间`, visible: true },
+  { key: 0, label: `姓名`, visible: true },
+  { key: 1, label: `课程名称`, visible: true },
+  { key: 2, label: `课程类型`, visible: true },
+  { key: 3, label: `理论学时`, visible: true },
+  { key: 4, label: `实验学时`, visible: true },
+  { key: 5, label: `总人数`, visible: true },
+  { key: 6, label: `净工作量`, visible: true },
+  { key: 7, label: `工作量`, visible: true },
+  { key: 8, label: `状态`, visible: true },
+  { key: 9, label: `创建时间`, visible: true },
 ]);
 
 const data = reactive({
