@@ -137,11 +137,33 @@
           </el-col>
           <el-col :span="1.5">
             <el-button
+              type="success"
+              plain
+              icon="document-checked"
+              :disabled="multiple"
+              @click="handleExamine"
+              v-hasPermi="['pm:workload:examine']"
+              >审核通过</el-button
+            >
+          </el-col>
+          <el-col :span="1.5">
+            <el-button
+              type="danger"
+              plain
+              icon="document-delete"
+              :disabled="multiple"
+              @click="handleReject"
+              v-hasPermi="['pm:workload:examine']"
+              >审核不通过</el-button
+            >
+          </el-col>
+          <el-col :span="1.5">
+            <el-button
               type="info"
               plain
               icon="Upload"
               @click="handleImport"
-              v-hasPermi="['system:user:import']"
+              v-hasPermi="['pm:workload:import']"
               >导入</el-button
             >
           </el-col>
@@ -239,14 +261,13 @@
             prop="status"
             v-if="columns[8].visible"
           >
-            <!-- <template #default="scope">
-              <el-switch
-                v-model="scope.row.status"
-                active-value="0"
-                inactive-value="1"
-                @change="handleStatusChange(scope.row)"
-              ></el-switch>
-            </template> -->
+            <template #default="scope">
+              <span v-if="scope.row.status === 0">未审核</span>
+              <span v-else-if="scope.row.status === 10">审核中</span>
+              <span v-else-if="scope.row.status === 20">审核不通过</span>
+              <span v-else-if="scope.row.status === 30">审核通过</span>
+              <span v-else>未知状态</span>
+            </template>
           </el-table-column>
           <el-table-column
             label="创建时间"
@@ -266,17 +287,31 @@
             class-name="small-padding fixed-width"
           >
             <template #default="scope">
-              <el-tooltip
-                content="审核"
-                placement="top"
-                v-if="scope.row.userId !== 1"
-              >
+              <el-tooltip content="编辑" placement="top">
                 <el-button
                   link
                   type="primary"
                   icon="Edit"
                   @click="handleUpdate(scope.row)"
-                  v-hasPermi="['system:user:edit']"
+                  v-hasPermi="['pm:workload:edit']"
+                ></el-button>
+              </el-tooltip>
+              <el-tooltip content="审核通过" placement="top">
+                <el-button
+                  link
+                  type="primary"
+                  icon="document-checked"
+                  @click="handleExamine(scope.row)"
+                  v-hasPermi="['pm:workload:examine']"
+                ></el-button>
+              </el-tooltip>
+              <el-tooltip content="审核不通过" placement="top">
+                <el-button
+                  link
+                  type="primary"
+                  icon="document-delete"
+                  @click="handleReject(scope.row)"
+                  v-hasPermi="['pm:workload:examine']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip
@@ -292,19 +327,6 @@
                   v-hasPermi="['system:user:remove']"
                 ></el-button>
               </el-tooltip>
-              <el-tooltip
-                content="重置密码"
-                placement="top"
-                v-if="scope.row.userId !== 1"
-              >
-                <el-button
-                  link
-                  type="primary"
-                  icon="Key"
-                  @click="handleResetPwd(scope.row)"
-                  v-hasPermi="['system:user:resetPwd']"
-                ></el-button>
-              </el-tooltip>
             </template>
           </el-table-column>
         </el-table>
@@ -318,131 +340,119 @@
       </el-col>
     </el-row>
 
-    <!-- 添加或修改用户配置对话框 -->
+    <!-- 添加或修改教学工作量配置对话框 -->
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
-      <el-form :model="form" :rules="rules" ref="userRef" label-width="80px">
+      <el-form
+        :model="form"
+        :rules="rules"
+        ref="teachingWorkRef"
+        label-width="80px"
+      >
         <el-row>
           <el-col :span="12">
-            <el-form-item label="用户昵称" prop="nickName">
+            <el-form-item label="教师姓名" prop="teacherName">
               <el-input
-                v-model="form.nickName"
+                v-model="form.teacherName"
                 placeholder="请输入用户昵称"
                 maxlength="30"
+                :disabled="!(form.id == undefined)"
               />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="归属部门" prop="deptId">
-              <el-tree-select
-                v-model="form.deptId"
-                :data="deptOptions"
-                :props="{ value: 'id', label: 'label', children: 'children' }"
-                value-key="id"
-                placeholder="请选择归属部门"
-                check-strictly
+            <el-form-item label="课程类型" prop="type">
+              <el-input
+                v-model="form.type"
+                placeholder="请选择课程类型"
+                maxlength="30"
               />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
-          <el-col :span="12">
-            <el-form-item label="手机号码" prop="phone">
+          <el-col :span="24">
+            <el-form-item label="课程名称" prop="courseName">
               <el-input
-                v-model="form.phone"
-                placeholder="请输入手机号码"
+                v-model="form.courseName"
+                placeholder="请输入课程名称"
+                maxlength="60"
+              ></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="理论学时" prop="theoreticalHours">
+              <el-input
+                v-model="form.theoreticalHours"
+                placeholder="请输入理论学时"
                 maxlength="11"
               />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="邮箱" prop="email">
+            <el-form-item label="实验学时" prop="experimentalHours">
               <el-input
-                v-model="form.email"
-                placeholder="请输入邮箱"
-                maxlength="50"
+                v-model="form.experimentalHours"
+                placeholder="请输入实验学时"
+                maxlength="11"
               />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item
-              v-if="form.userId == undefined"
-              label="用户名称"
-              prop="userName"
-            >
+            <el-form-item label="总人数" prop="studentNum">
               <el-input
-                v-model="form.userName"
-                placeholder="请输入用户名称"
+                v-model="form.studentNum"
+                placeholder="请输入总人数"
                 maxlength="30"
               />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item
-              v-if="form.userId == undefined"
-              label="用户密码"
-              prop="password"
-            >
+            <el-form-item label="净工作量" prop="netWorkload">
               <el-input
-                v-model="form.password"
-                placeholder="请输入用户密码"
-                type="password"
-                maxlength="20"
-                show-password
+                v-model="form.netWorkload"
+                placeholder="为空则系统自动计算"
+                maxlength="11"
               />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="用户性别">
-              <el-select v-model="form.sex" placeholder="请选择">
-                <el-option
-                  v-for="dict in sys_user_sex"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-                ></el-option>
-              </el-select>
+            <el-form-item label="工作量" prop="workload">
+              <el-input
+                v-model="form.workload"
+                placeholder="为空则系统自动计算"
+                maxlength="11"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="状态">
-              <el-radio-group v-model="form.status">
-                <el-radio
-                  v-for="dict in sys_normal_disable"
-                  :key="dict.value"
-                  :label="dict.value"
-                  >{{ dict.label }}</el-radio
-                >
-              </el-radio-group>
+              <el-select v-model="form.status" placeholder="请选择">
+                <el-option
+                  v-for="(item, index) in statusOptions"
+                  :key="index"
+                  :label="item.label"
+                  :value="item.value"
+                  :disabled="item.disabled"
+                ></el-option>
+              </el-select>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="岗位">
-              <el-select v-model="form.postIds" multiple placeholder="请选择">
+            <el-form-item label="所属学年" prop="schoolYear">
+              <el-select v-model="form.schoolYear" placeholder="请选择">
                 <el-option
-                  v-for="item in postOptions"
-                  :key="item.postId"
-                  :label="item.postName"
-                  :value="item.postId"
-                  :disabled="item.status == 1"
-                ></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="角色">
-              <el-select v-model="form.roleIds" multiple placeholder="请选择">
-                <el-option
-                  v-for="item in roleOptions"
-                  :key="item.roleId"
-                  :label="item.roleName"
-                  :value="item.roleId"
-                  :disabled="item.status == 1"
+                  v-for="dict in pm_school_year"
+                  :key="dict.value"
+                  :label="dict.label"
+                  :value="dict.value"
                 ></el-option>
               </el-select>
             </el-form-item>
@@ -529,7 +539,15 @@ import {
   addUser,
   deptTreeSelect,
 } from "@/api/system/user";
-import { listTeachingWork } from "@/api/performance/teachingWork";
+import {
+  listTeachingWork,
+  getTeachingWork,
+  addTeachingWork,
+  updateTeachingWork,
+  examine,
+  delTeachingWork,
+} from "@/api/performance/teachingWork";
+import { get } from "@vueuse/core";
 
 const router = useRouter();
 const { proxy } = getCurrentInstance();
@@ -568,7 +586,7 @@ const upload = reactive({
   // 设置上传的请求头部
   headers: { Authorization: getToken() },
   // 上传的地址
-  url: import.meta.env.VITE_APP_BASE_API + "/system/user/importData",
+  url: import.meta.env.VITE_APP_BASE_API + "/performance/teachingWork/importData",
 });
 // 列显隐信息
 const columns = ref([
@@ -595,32 +613,24 @@ const data = reactive({
     deptId: undefined,
   },
   rules: {
-    userName: [
-      { required: true, message: "用户名称不能为空", trigger: "blur" },
+    teacherName: [
+      { required: true, message: "教师姓名不能为空", trigger: "blur" },
       {
         min: 2,
         max: 20,
-        message: "用户名称长度必须介于 2 和 20 之间",
+        message: "教师姓名长度必须介于 2 和 20 之间",
         trigger: "blur",
       },
     ],
-    nickName: [
-      { required: true, message: "用户昵称不能为空", trigger: "blur" },
+    type: [{ required: true, message: "课程类型不能为空", trigger: "blur" }],
+    courseName: [
+      { required: true, message: "课程名称不能为空", trigger: "blur" },
     ],
-    password: [
-      { required: true, message: "用户密码不能为空", trigger: "blur" },
+    schoolYear: [
       {
-        min: 5,
-        max: 20,
-        message: "用户密码长度必须介于 5 和 20 之间",
-        trigger: "blur",
-      },
-    ],
-    email: [
-      {
-        type: "email",
-        message: "请输入正确的邮箱地址",
-        trigger: ["blur", "change"],
+        required: true,
+        message: "请选择学年",
+        trigger: "change",
       },
     ],
     status: [
@@ -641,8 +651,12 @@ const data = reactive({
       value: 10,
     },
     {
-      label: "已审核",
+      label: "审核不通过",
       value: 20,
+    },
+    {
+      label: "已审核",
+      value: 30,
     },
   ],
 });
@@ -706,11 +720,11 @@ function resetQuery() {
 }
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const userIds = row.userId || ids.value;
+  const workIds = row.id || ids.value;
   proxy.$modal
-    .confirm('是否确认删除用户编号为"' + userIds + '"的数据项？')
+    .confirm("是否确认删除数据项？")
     .then(function () {
-      return delUser(userIds);
+      return delTeachingWork(workIds);
     })
     .then(() => {
       getWorkList();
@@ -721,27 +735,12 @@ function handleDelete(row) {
 /** 导出按钮操作 */
 function handleExport() {
   proxy.download(
-    "system/user/export",
+    "/performance/teachingWork/export",
     {
       ...queryParams.value,
     },
     `user_${new Date().getTime()}.xlsx`
   );
-}
-/** 用户状态修改  */
-function handleStatusChange(row) {
-  let text = row.status === "0" ? "启用" : "停用";
-  proxy.$modal
-    .confirm('确认要"' + text + '""' + row.userName + '"用户吗?')
-    .then(function () {
-      return changeUserStatus(row.userId, row.status);
-    })
-    .then(() => {
-      proxy.$modal.msgSuccess(text + "成功");
-    })
-    .catch(function () {
-      row.status = row.status === "0" ? "1" : "0";
-    });
 }
 /** 更多操作 */
 function handleCommand(command, row) {
@@ -780,7 +779,7 @@ function handleResetPwd(row) {
 }
 /** 选择条数  */
 function handleSelectionChange(selection) {
-  ids.value = selection.map((item) => item.userId);
+  ids.value = selection.map((item) => item.id);
   single.value = selection.length != 1;
   multiple.value = !selection.length;
 }
@@ -822,20 +821,21 @@ function submitFileForm() {
 /** 重置操作表单 */
 function reset() {
   form.value = {
-    userId: undefined,
-    deptId: undefined,
-    userName: undefined,
-    nickName: undefined,
-    password: undefined,
-    phone: undefined,
-    email: undefined,
-    sex: undefined,
-    status: "0",
+    id: undefined,
+    teacherId: undefined,
+    teacherName: undefined,
+    courseName: undefined,
+    type: undefined,
+    theoreticalHours: undefined,
+    experimentalHours: undefined,
+    studentNum: undefined,
+    netWorkload: undefined,
+    workload: undefined,
+    schoolYear: undefined,
+    status: 0,
     remark: undefined,
-    postIds: [],
-    roleIds: [],
   };
-  proxy.resetForm("userRef");
+  proxy.resetForm("teachingWorkRef");
 }
 /** 取消按钮 */
 function cancel() {
@@ -845,41 +845,66 @@ function cancel() {
 /** 新增按钮操作 */
 function handleAdd() {
   reset();
-  getUser().then((response) => {
-    postOptions.value = response.posts;
-    roleOptions.value = response.roles;
-    open.value = true;
-    title.value = "添加用户";
-    form.value.password = initPassword.value;
-  });
+  open.value = true;
+  title.value = "添加教学工作量明细";
 }
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const userId = row.userId || ids.value;
-  getUser(userId).then((response) => {
+  const id = row.id.value || ids.value;
+  getTeachingWork(id).then((response) => {
     form.value = response.data;
     postOptions.value = response.posts;
     roleOptions.value = response.roles;
     form.value.postIds = response.postIds;
     form.value.roleIds = response.roleIds;
     open.value = true;
-    title.value = "修改用户";
+    title.value = "修改教学工作量";
     form.password = "";
   });
 }
+/** 审核通过按钮操作 */
+function handleExamine(row) {
+  var arr = [];
+  arr.push(row.id);
+  const workIds = arr || ids.value;
+  proxy.$modal
+    .confirm("是否确认审核通过选中的数据项？")
+    .then(function () {
+      return examine(workIds, 30);
+    })
+    .then(() => {
+      getWorkList();
+      proxy.$modal.msgSuccess("操作成功");
+    })
+    .catch(() => {});
+}
+/** 审核驳回按钮操作 */
+function handleReject(row) {
+  const workIds = row.id || ids.value;
+  proxy.$modal
+    .confirm("是否确认驳回选中的数据项？")
+    .then(function () {
+      return examine(workIds, 20);
+    })
+    .then(() => {
+      getWorkList();
+      proxy.$modal.msgSuccess("操作成功");
+    })
+    .catch(() => {});
+}
 /** 提交按钮 */
 function submitForm() {
-  proxy.$refs["userRef"].validate((valid) => {
+  proxy.$refs["teachingWorkRef"].validate((valid) => {
     if (valid) {
-      if (form.value.userId != undefined) {
-        updateUser(form.value).then((response) => {
+      if (form.value.id != undefined) {
+        updateTeachingWork(form.value).then((response) => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
           getWorkList();
         });
       } else {
-        addUser(form.value).then((response) => {
+        addTeachingWork(form.value).then((response) => {
           proxy.$modal.msgSuccess("新增成功");
           open.value = false;
           getWorkList();

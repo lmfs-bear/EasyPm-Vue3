@@ -1,4 +1,5 @@
 import request from '@/utils/request'
+import { parseStrEmpty } from "@/utils/ruoyi";
 
 // 查询用户列表
 export function listTeachingWork(query) {
@@ -9,11 +10,50 @@ export function listTeachingWork(query) {
   })
 }
 
-// // 查询用户详细
-// export function getUser(userId) {
-//   return request({
-//     url: '/system/user/' + parseStrEmpty(userId),
-//     method: 'get'
-//   })
-// }
+// 查询教学工作量明细
+export function getTeachingWork(id) {
+  return request({
+    url: '/performance/teachingWork/' + parseStrEmpty(id),
+    method: 'get'
+  })
+}
+
+// 新增教学工作量
+export function addTeachingWork(data) {
+  return request({
+    url: '/performance/teachingWork',
+    method: 'post',
+    data: data
+  })
+}
+
+// 删除教学工作量
+export function delTeachingWork(id) {
+  return request({
+    url: '/performance/teachingWork/' + id,
+    method: 'delete'
+  })
+}
+
+//审核
+export function examine(ids, status) {
+  const data = {
+    ids,
+    status
+  }
+  return request({
+    url: '/performance/teachingWork/examine',
+    method: 'post',
+    data: data
+  })
+}
+
+// 修改用户
+export function updateTeachingWork(data) {
+  return request({
+    url: '/performance/teachingWork',
+    method: 'put',
+    data: data
+  })
+}
 
