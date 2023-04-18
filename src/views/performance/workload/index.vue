@@ -333,7 +333,7 @@
         <pagination
           v-show="total > 0"
           :total="total"
-          v-model:page="queryParams.pageNum"
+          v-model:page="queryParams.page"
           v-model:limit="queryParams.pageSize"
           @pagination="getWorkList"
         />
@@ -361,11 +361,15 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="课程类型" prop="type">
-              <el-input
-                v-model="form.type"
-                placeholder="请选择课程类型"
-                maxlength="30"
-              />
+              <el-select v-model="form.type" placeholder="请选择课程类型" filterable>
+                <el-option
+                  v-for="(item, index) in typeOptions"
+                  :key="index"
+                  :label="item.label"
+                  :value="item.value"
+                  :disabled="item.disabled"
+                ></el-option>
+              </el-select>
             </el-form-item>
           </el-col>
         </el-row>
@@ -586,7 +590,8 @@ const upload = reactive({
   // 设置上传的请求头部
   headers: { Authorization: getToken() },
   // 上传的地址
-  url: import.meta.env.VITE_APP_BASE_API + "/performance/teachingWork/importData",
+  url:
+    import.meta.env.VITE_APP_BASE_API + "/performance/teachingWork/importData",
 });
 // 列显隐信息
 const columns = ref([
@@ -605,7 +610,7 @@ const columns = ref([
 const data = reactive({
   form: {},
   queryParams: {
-    pageNum: 1,
+    page: 1,
     pageSize: 10,
     userName: undefined,
     schoolYear: undefined,
@@ -659,9 +664,63 @@ const data = reactive({
       value: 30,
     },
   ],
+  typeOptions: [
+    {
+      label: "通识必修",
+      value: 10,
+    },
+    {
+      label: "专业必修",
+      value: 20,
+    },
+    {
+      label: "专业选修",
+      value: 30,
+    },
+    {
+      label: "实践必修",
+      value: 40,
+    },
+    {
+      label: "专业实习",
+      value: 50,
+    },
+    {
+      label: "毕业实习与毕设",
+      value: 60,
+    },
+    {
+      label: "企业实践考核答辩",
+      value: 70,
+    },
+    {
+      label: "专业实习答辩",
+      value: 80,
+    },
+    {
+      label: "班主任",
+      value: 90,
+    },
+    {
+      label: "企业实践",
+      value: 100,
+    },
+    {
+      label: "研一指导",
+      value: 110,
+    },
+    {
+      label: "研二指导",
+      value: 120,
+    },
+    {
+      label: "研三指导",
+      value: 130,
+    },
+  ],
 });
 
-const { queryParams, form, rules, statusOptions } = toRefs(data);
+const { queryParams, form, rules, statusOptions, typeOptions } = toRefs(data);
 
 /** 通过条件过滤节点  */
 const filterNode = (value, data) => {
@@ -707,7 +766,7 @@ function handleNodeClick(data) {
 }
 /** 搜索按钮操作 */
 function handleQuery() {
-  queryParams.value.pageNum = 1;
+  queryParams.value.page = 1;
   getWorkList();
 }
 /** 重置按钮操作 */
