@@ -21,7 +21,7 @@ export function getUser(userId) {
 // 新增用户
 export function addUser(data) {
   return request({
-    url: '/system/user',
+    url: '/user',
     method: 'post',
     data: data
   })
@@ -30,7 +30,7 @@ export function addUser(data) {
 // 修改用户
 export function updateUser(data) {
   return request({
-    url: '/system/user',
+    url: '/user',
     method: 'put',
     data: data
   })
@@ -51,7 +51,7 @@ export function resetUserPwd(userId, password) {
     password
   }
   return request({
-    url: '/system/user/resetPwd',
+    url: '/user/resetPwd',
     method: 'put',
     data: data
   })
@@ -59,14 +59,9 @@ export function resetUserPwd(userId, password) {
 
 // 用户状态修改
 export function changeUserStatus(userId, status) {
-  const data = {
-    userId,
-    status
-  }
   return request({
-    url: '/system/user/changeStatus',
+    url: '/user/changeStatus/'+userId+'/'+status,
     method: 'put',
-    data: data
   })
 }
 
@@ -112,7 +107,7 @@ export function uploadAvatar(data) {
 // 查询授权角色
 export function getAuthRole(userId) {
   return request({
-    url: '/system/user/authRole/' + userId,
+    url: '/user/authRole/' + userId,
     method: 'get'
   })
 }
@@ -120,7 +115,7 @@ export function getAuthRole(userId) {
 // 保存授权角色
 export function updateAuthRole(data) {
   return request({
-    url: '/system/user/authRole',
+    url: '/user/authRole',
     method: 'put',
     params: data
   })
@@ -129,7 +124,7 @@ export function updateAuthRole(data) {
 // 查询部门下拉树结构
 export function deptTreeSelect() {
   return request({
-    url: '/system/user/deptTree',
+    url: '/user/deptTree',
     method: 'get'
   })
 }

@@ -2,7 +2,7 @@
   <div class="app-container">
     <el-row :gutter="20">
       <!--部门数据-->
-      <el-col :span="4" :xs="24">
+      <el-col :span="5" :xs="24">
         <div class="head-container">
           <el-input
             v-model="deptName"
@@ -27,7 +27,7 @@
         </div>
       </el-col>
       <!--用户数据-->
-      <el-col :span="20" :xs="24">
+      <el-col :span="19" :xs="24">
         <el-form
           :model="queryParams"
           ref="queryRef"
@@ -35,10 +35,10 @@
           v-show="showSearch"
           label-width="68px"
         >
-          <el-form-item label="用户名称" prop="userName">
+          <el-form-item label="姓名" prop="name">
             <el-input
-              v-model="queryParams.userName"
-              placeholder="请输入用户名称"
+              v-model="queryParams.name"
+              placeholder="请输入姓名"
               clearable
               style="width: 240px"
               @keyup.enter="handleQuery"
@@ -124,6 +124,7 @@
               type="info"
               plain
               icon="Upload"
+              :disabled="true"
               @click="handleImport"
               v-hasPermi="['system:user:import']"
               >导入</el-button
@@ -154,19 +155,26 @@
           <el-table-column type="selection" width="50" align="center" />
           <!-- <el-table-column label="用户ID" align="center" key="id" prop="id" v-if="columns[0].visible" /> -->
           <el-table-column
-            label="用户名称"
+            label="工号"
             align="center"
             key="userName"
             prop="userName"
             v-if="columns[1].visible"
             :show-overflow-tooltip="true"
           />
-          <!-- <el-table-column label="用户昵称" align="center" key="nickName" prop="nickName" v-if="columns[2].visible" :show-overflow-tooltip="true" /> -->
+          <el-table-column
+            label="姓名"
+            align="center"
+            key="name"
+            prop="name"
+            v-if="columns[2].visible"
+            :show-overflow-tooltip="true"
+          />
           <el-table-column
             label="部门"
             align="center"
             key="deptName"
-            prop="dept.deptName"
+            prop="deptName"
             v-if="columns[3].visible"
             :show-overflow-tooltip="true"
           />
@@ -214,7 +222,7 @@
               <el-tooltip
                 content="修改"
                 placement="top"
-                v-if="scope.row.userId !== 1"
+                v-if="scope.row.isAdmin !== true"
               >
                 <el-button
                   link
@@ -227,7 +235,7 @@
               <el-tooltip
                 content="删除"
                 placement="top"
-                v-if="scope.row.userId !== 1"
+                v-if="scope.row.isAdmin !== true"
               >
                 <el-button
                   link
@@ -240,7 +248,7 @@
               <el-tooltip
                 content="重置密码"
                 placement="top"
-                v-if="scope.row.userId !== 1"
+                v-if="scope.row.isAdmin !== true"
               >
                 <el-button
                   link
@@ -253,7 +261,7 @@
               <el-tooltip
                 content="分配角色"
                 placement="top"
-                v-if="scope.row.userId !== 1"
+                v-if="scope.row.isAdmin !== true"
               >
                 <el-button
                   link
@@ -269,7 +277,7 @@
         <pagination
           v-show="total > 0"
           :total="total"
-          v-model:page="queryParams.pageNum"
+          v-model:page="queryParams.page"
           v-model:limit="queryParams.pageSize"
           @pagination="getList"
         />
@@ -281,10 +289,10 @@
       <el-form :model="form" :rules="rules" ref="userRef" label-width="80px">
         <el-row>
           <el-col :span="12">
-            <el-form-item label="用户昵称" prop="nickName">
+            <el-form-item label="用户姓名" prop="name">
               <el-input
-                v-model="form.nickName"
-                placeholder="请输入用户昵称"
+                v-model="form.name"
+                placeholder="请输入用户姓名"
                 maxlength="30"
               />
             </el-form-item>
@@ -325,20 +333,20 @@
         <el-row>
           <el-col :span="12">
             <el-form-item
-              v-if="form.userId == undefined"
-              label="用户名称"
+              v-if="form.id == undefined"
+              label="工号"
               prop="userName"
             >
               <el-input
                 v-model="form.userName"
-                placeholder="请输入用户名称"
+                placeholder="请输入教师工号"
                 maxlength="30"
               />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item
-              v-if="form.userId == undefined"
+              v-if="form.id == undefined"
               label="用户密码"
               prop="password"
             >
@@ -355,7 +363,7 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="用户性别">
-              <el-select v-model="form.sex" placeholder="请选择">
+              <el-select v-model="form.gender" placeholder="请选择">
                 <el-option
                   v-for="dict in sys_user_sex"
                   :key="dict.value"
@@ -384,9 +392,9 @@
               <el-select v-model="form.postIds" multiple placeholder="请选择">
                 <el-option
                   v-for="item in postOptions"
-                  :key="item.postId"
+                  :key="item.id"
                   :label="item.postName"
-                  :value="item.postId"
+                  :value="item.id"
                   :disabled="item.status == 1"
                 ></el-option>
               </el-select>
@@ -397,9 +405,9 @@
               <el-select v-model="form.roleIds" multiple placeholder="请选择">
                 <el-option
                   v-for="item in roleOptions"
-                  :key="item.roleId"
+                  :key="item.id"
                   :label="item.roleName"
-                  :value="item.roleId"
+                  :value="item.id"
                   :disabled="item.status == 1"
                 ></el-option>
               </el-select>
@@ -454,7 +462,7 @@
                 v-model="upload.updateSupport"
               />是否更新已经存在的用户数据
             </div>
-            <span>仅允许导入xls、xlsx格式文件。</span>
+            <span>仅允许导入xls、xlsx格式文件 </span>
             <el-link
               type="primary"
               :underline="false"
@@ -477,6 +485,7 @@
 
 <script setup name="User">
 import { getToken } from "@/utils/auth";
+import { encrypt, decrypt } from "@/utils/jsencrypt";
 import {
   changeUserStatus,
   listUser,
@@ -539,7 +548,7 @@ const columns = ref([
 const data = reactive({
   form: {},
   queryParams: {
-    pageNum: 1,
+    page: 1,
     pageSize: 10,
     userName: undefined,
     phone: undefined,
@@ -548,11 +557,11 @@ const data = reactive({
   },
   rules: {
     userName: [
-      { required: true, message: "用户名称不能为空", trigger: "blur" },
+      { required: true, message: "用户工号不能为空", trigger: "blur" },
       {
-        min: 2,
+        min: 6,
         max: 20,
-        message: "用户名称长度必须介于 2 和 20 之间",
+        message: "用户工号长度必须介于 6 和 20 之间",
         trigger: "blur",
       },
     ],
@@ -620,7 +629,7 @@ function handleNodeClick(data) {
 }
 /** 搜索按钮操作 */
 function handleQuery() {
-  queryParams.value.pageNum = 1;
+  queryParams.value.page = 1;
   getList();
 }
 /** 重置按钮操作 */
@@ -633,7 +642,7 @@ function resetQuery() {
 }
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const userIds = row.userId || ids.value;
+  const userIds = row.id || ids.value;
   proxy.$modal
     .confirm('是否确认删除用户编号为"' + userIds + '"的数据项？')
     .then(function () {
@@ -661,7 +670,7 @@ function handleStatusChange(row) {
   proxy.$modal
     .confirm('确认要"' + text + '""' + row.userName + '"用户吗?')
     .then(function () {
-      return changeUserStatus(row.userId, row.status);
+      return changeUserStatus(row.id, row.status);
     })
     .then(() => {
       proxy.$modal.msgSuccess(text + "成功");
@@ -685,21 +694,25 @@ function handleCommand(command, row) {
 }
 /** 跳转角色分配 */
 function handleAuthRole(row) {
-  const userId = row.userId;
+  const userId = row.id;
   router.push("/system/user-auth/role/" + userId);
 }
 /** 重置密码按钮操作 */
 function handleResetPwd(row) {
   proxy
-    .$prompt('请输入"' + row.userName + '"的新密码', "提示", {
-      confirmButtonText: "确定",
-      cancelButtonText: "取消",
-      closeOnClickModal: false,
-      inputPattern: /^.{5,20}$/,
-      inputErrorMessage: "用户密码长度必须介于 5 和 20 之间",
-    })
+    .$prompt(
+      "请输入[姓名:" + row.name + ",工号:" + row.userName + "]的新密码",
+      "提示",
+      {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        closeOnClickModal: false,
+        inputPattern: /^.{5,20}$/,
+        inputErrorMessage: "用户密码长度必须介于 5 和 20 之间",
+      }
+    )
     .then(({ value }) => {
-      resetUserPwd(row.userId, value).then((response) => {
+      resetUserPwd(row.id, value).then((response) => {
         proxy.$modal.msgSuccess("修改成功，新密码是：" + value);
       });
     })
@@ -707,7 +720,7 @@ function handleResetPwd(row) {
 }
 /** 选择条数  */
 function handleSelectionChange(selection) {
-  ids.value = selection.map((item) => item.userId);
+  ids.value = selection.map((item) => item.id);
   single.value = selection.length != 1;
   multiple.value = !selection.length;
 }
@@ -719,9 +732,9 @@ function handleImport() {
 /** 下载模板操作 */
 function importTemplate() {
   proxy.download(
-    "system/user/importTemplate",
+    "/performance/teachingWork/importTemplate",
     {},
-    `user_template_${new Date().getTime()}.xlsx`
+    `教学工作量明细上传模板.xlsx`
   );
 }
 /**文件上传中处理 */
@@ -749,14 +762,14 @@ function submitFileForm() {
 /** 重置操作表单 */
 function reset() {
   form.value = {
-    userId: undefined,
+    id: undefined,
     deptId: undefined,
     userName: undefined,
-    nickName: undefined,
+    name: undefined,
     password: undefined,
     phone: undefined,
     email: undefined,
-    sex: undefined,
+    gender: undefined,
     status: "0",
     remark: undefined,
     postIds: [],
@@ -773,8 +786,8 @@ function cancel() {
 function handleAdd() {
   reset();
   getUser().then((response) => {
-    postOptions.value = response.posts;
-    roleOptions.value = response.roles;
+    postOptions.value = response.data.posts;
+    roleOptions.value = response.data.roles;
     open.value = true;
     title.value = "添加用户";
     form.value.password = initPassword.value;
@@ -783,13 +796,13 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const userId = row.userId || ids.value;
+  const userId = row.id || ids.value;
   getUser(userId).then((response) => {
-    form.value = response.data;
-    postOptions.value = response.posts;
-    roleOptions.value = response.roles;
-    form.value.postIds = response.postIds;
-    form.value.roleIds = response.roleIds;
+    form.value = response.data.user;
+    postOptions.value = response.data.posts;
+    roleOptions.value = response.data.roles;
+    form.value.postIds = response.data.postIds;
+    form.value.roleIds = response.data.roleIds;
     open.value = true;
     title.value = "修改用户";
     form.password = "";
@@ -799,6 +812,7 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["userRef"].validate((valid) => {
     if (valid) {
+      form.value.password = encrypt(form.value.password);
       if (form.value.userId != undefined) {
         updateUser(form.value).then((response) => {
           proxy.$modal.msgSuccess("修改成功");
@@ -812,6 +826,7 @@ function submitForm() {
           getList();
         });
       }
+      form.value.password = decrypt(form.value.password);
     }
   });
 }

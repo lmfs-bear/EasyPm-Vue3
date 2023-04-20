@@ -361,7 +361,11 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="课程类型" prop="type">
-              <el-select v-model="form.type" placeholder="请选择课程类型" filterable>
+              <el-select
+                v-model="form.type"
+                placeholder="请选择课程类型"
+                filterable
+              >
                 <el-option
                   v-for="(item, index) in typeOptions"
                   :key="index"
@@ -508,13 +512,16 @@
             <div class="el-upload__tip">
               <el-checkbox
                 v-model="upload.updateSupport"
-              />是否更新已经存在的用户数据
+              />是否更新已经存在的数据
             </div>
             <span>仅允许导入xls、xlsx格式文件。</span>
+            <div>
+              <span> 请指定sheet名称以标识学年 示例：2022-2023</span>
+            </div>
             <el-link
               type="primary"
               :underline="false"
-              style="font-size: 12px; vertical-align: baseline"
+              style="font-size: 14px; vertical-align: baseline"
               @click="importTemplate"
               >下载模板</el-link
             >
@@ -798,7 +805,7 @@ function handleExport() {
     {
       ...queryParams.value,
     },
-    `user_${new Date().getTime()}.xlsx`
+    `教学工作量明细版.xlsx`
   );
 }
 /** 更多操作 */
@@ -844,15 +851,15 @@ function handleSelectionChange(selection) {
 }
 /** 导入按钮操作 */
 function handleImport() {
-  upload.title = "用户导入";
+  upload.title = "教学工作量导入";
   upload.open = true;
 }
 /** 下载模板操作 */
 function importTemplate() {
   proxy.download(
-    "system/user/importTemplate",
+    "/performance/teachingWork/importTemplate",
     {},
-    `user_template_${new Date().getTime()}.xlsx`
+    `教学工作量明细上传模板.xlsx`
   );
 }
 /**文件上传中处理 */
