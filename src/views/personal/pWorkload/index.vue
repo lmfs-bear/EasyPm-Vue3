@@ -657,20 +657,24 @@ const data = reactive({
   },
   statusOptions: [
     {
-      label: "未审核",
-      value: 0,
-    },
-    {
-      label: "审核中",
+      label: "未提交审核",
       value: 10,
     },
     {
-      label: "审核不通过",
-      value: 20,
+      label: "待系主任审核",
+      value: 30,
     },
     {
-      label: "已审核",
-      value: 30,
+      label: "待教学办审核",
+      value: 40,
+    },
+    {
+      label: "审核通过",
+      value: 50,
+    },
+    {
+      label: "审核驳回",
+      value: 60,
     },
   ],
   typeOptions: [
@@ -740,12 +744,12 @@ const filterNode = (value, data) => {
 watch(deptName, (val) => {
   proxy.$refs["deptTreeRef"].filter(val);
 });
-/** 查询部门下拉树结构 */
-function getDeptTree() {
-  deptTreeSelect().then((response) => {
-    deptOptions.value = response.data;
-  });
-}
+// /** 查询部门下拉树结构 */
+// function getDeptTree() {
+//   deptTreeSelect().then((response) => {
+//     deptOptions.value = response.data;
+//   });
+// }
 /** 查询用户列表 */
 // function getList() {
 //   loading.value = true;
@@ -968,7 +972,7 @@ function submitForm() {
   });
 }
 
-getDeptTree();
+// getDeptTree();
 // getList();
 getWorkList();
 </script>
