@@ -638,7 +638,7 @@ function getMenuAllCheckedKeys() {
 function submitForm() {
   proxy.$refs["roleRef"].validate((valid) => {
     if (valid) {
-      if (form.value.roleId != undefined) {
+      if (form.value.id != undefined) {
         form.value.menuIds = getMenuAllCheckedKeys();
         updateRole(form.value).then((response) => {
           proxy.$modal.msgSuccess("修改成功");

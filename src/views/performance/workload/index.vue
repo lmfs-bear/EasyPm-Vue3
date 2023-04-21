@@ -204,7 +204,7 @@
             key="courseName"
             prop="courseName"
             v-if="columns[1].visible"
-            width="160"
+            width="150"
           />
           <el-table-column
             label="课程类型"
@@ -212,8 +212,25 @@
             key="type"
             prop="type"
             v-if="columns[2].visible"
-            :show-overflow-tooltip="true"
-          />
+            :show-overflow-tooltip="false"
+          >
+            <template #default="scope">
+              <span v-if="scope.row.type === 10">通识必修</span>
+              <span v-else-if="scope.row.type === 20">专业必修</span>
+              <span v-else-if="scope.row.type === 30">专业选修</span>
+              <span v-else-if="scope.row.type === 40">实践必修</span>
+              <span v-else-if="scope.row.type === 50">专业实习</span>
+              <span v-else-if="scope.row.type === 60">毕业实习与毕设</span>
+              <span v-else-if="scope.row.type === 70">企业实践考核答辩</span>
+              <span v-else-if="scope.row.type === 80">专业实习答辩</span>
+              <span v-else-if="scope.row.type === 90">班主任</span>
+              <span v-else-if="scope.row.type === 100">企业实践</span>
+              <span v-else-if="scope.row.type === 110">研一指导</span>
+              <span v-else-if="scope.row.type === 120">研二指导</span>
+              <span v-else-if="scope.row.type === 130">研三指导</span>
+              <span v-else>未知类型</span>
+            </template>
+          </el-table-column>
           <el-table-column
             label="理论学时"
             align="center"

@@ -813,7 +813,7 @@ function submitForm() {
   proxy.$refs["userRef"].validate((valid) => {
     if (valid) {
       form.value.password = encrypt(form.value.password);
-      if (form.value.userId != undefined) {
+      if (form.value.id != undefined) {
         updateUser(form.value).then((response) => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
