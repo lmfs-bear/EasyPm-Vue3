@@ -10,6 +10,7 @@ const useUserStore = defineStore(
       token: getToken(),
       name: '',
       avatar: '',
+      userId: '',
       roles: [],
       permissions: []
     }),
@@ -45,6 +46,7 @@ const useUserStore = defineStore(
             }
             this.name = user.userName
             this.avatar = avatar;
+            this.userId = user.id;
             resolve(res)
           }).catch(error => {
             reject(error)

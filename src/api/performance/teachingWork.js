@@ -48,7 +48,7 @@ export function examine(ids, status) {
   })
 }
 
-// 修改用户
+// 修改教学工作量
 export function updateTeachingWork(data) {
   return request({
     url: '/performance/teachingWork',
@@ -57,3 +57,14 @@ export function updateTeachingWork(data) {
   })
 }
 
+//审核
+export function submit(ids) {
+  const data = {
+    ids
+  }
+  return request({
+    url: '/performance/teachingWork/submit',
+    method: 'post',
+    data: data
+  })
+}
