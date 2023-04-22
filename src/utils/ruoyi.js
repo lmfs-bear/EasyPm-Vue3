@@ -59,8 +59,14 @@ export function addDateRange(params, dateRange, propName) {
   search.params = typeof (search.params) === 'object' && search.params !== null && !Array.isArray(search.params) ? search.params : {};
   dateRange = Array.isArray(dateRange) ? dateRange : [];
   if (typeof (propName) === 'undefined') {
-    search.params['beginTime'] = dateRange[0];
-    search.params['endTime'] = dateRange[1];
+    const start = new Date(dateRange[0]);
+    start.setHours(0);
+    const end = new Date(dateRange[1]);
+    end.setHours(0);
+    if (dateRange[0]!==undefined) {
+      search.timeStart = start.getTime().toString();
+      search.timeEnd = (end.getTime() - 1).toString();
+    }
   } else {
     search.params['begin' + propName] = dateRange[0];
     search.params['end' + propName] = dateRange[1];
@@ -88,7 +94,7 @@ export function selectDictLabel(datas, value) {
 
 // 回显数据字典（字符串数组）
 export function selectDictLabels(datas, value, separator) {
-  if (value === undefined || value.length ===0) {
+  if (value === undefined || value.length === 0) {
     return "";
   }
   if (Array.isArray(value)) {
