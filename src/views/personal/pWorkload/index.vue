@@ -923,7 +923,7 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const id = row.id.value || ids.value;
+  const id = row.id || ids.value;
   getTeachingWork(id).then((response) => {
     form.value = response.data;
     postOptions.value = response.posts;
