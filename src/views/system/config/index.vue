@@ -125,7 +125,7 @@
          v-show="total > 0"
          :total="total"
          v-model:page="queryParams.pageNum"
-         v-model:limit="queryParams.pageSize"
+         v-model:limit="queryParams.size"
          @pagination="getList"
       />
 
@@ -185,7 +185,7 @@ const data = reactive({
   form: {},
   queryParams: {
     pageNum: 1,
-    pageSize: 10,
+    size: 10,
     configName: undefined,
     configKey: undefined,
     configType: undefined

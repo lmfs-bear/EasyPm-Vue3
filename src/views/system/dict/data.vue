@@ -5,7 +5,7 @@
             <el-select v-model="queryParams.dictType" style="width: 200px">
                <el-option
                   v-for="item in typeOptions"
-                  :key="item.dictId"
+                  :key="item.id"
                   :label="item.dictName"
                   :value="item.dictType"
                />
@@ -66,7 +66,7 @@
                v-hasPermi="['system:dict:remove']"
             >删除</el-button>
          </el-col>
-         <el-col :span="1.5">
+         <!-- <el-col :span="1.5">
             <el-button
                type="warning"
                plain
@@ -74,7 +74,7 @@
                @click="handleExport"
                v-hasPermi="['system:dict:export']"
             >导出</el-button>
-         </el-col>
+         </el-col> -->
          <el-col :span="1.5">
             <el-button
                type="warning"
@@ -119,8 +119,8 @@
       <pagination
          v-show="total > 0"
          :total="total"
-         v-model:page="queryParams.pageNum"
-         v-model:limit="queryParams.pageSize"
+         v-model:page="queryParams.page"
+         v-model:limit="queryParams.size"
          @pagination="getList"
       />
 
@@ -208,8 +208,8 @@ const listClassOptions = ref([
 const data = reactive({
   form: {},
   queryParams: {
-    pageNum: 1,
-    pageSize: 10,
+    page: 1,
+    size: 10,
     dictName: undefined,
     dictType: undefined,
     status: undefined
@@ -242,7 +242,7 @@ function getTypeList() {
 function getList() {
   loading.value = true;
   listData(queryParams.value).then(response => {
-    dataList.value = response.rows;
+    dataList.value = response.data;
     total.value = response.total;
     loading.value = false;
   });
@@ -268,7 +268,7 @@ function reset() {
 }
 /** 搜索按钮操作 */
 function handleQuery() {
-  queryParams.value.pageNum = 1;
+  queryParams.value.page = 1;
   getList();
 }
 /** 返回按钮操作 */

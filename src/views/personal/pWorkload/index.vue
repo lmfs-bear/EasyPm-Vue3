@@ -333,7 +333,7 @@
           v-show="total > 0"
           :total="total"
           v-model:page="queryParams.page"
-          v-model:limit="queryParams.pageSize"
+          v-model:limit="queryParams.size"
           @pagination="getWorkList"
         />
       </el-col>
@@ -620,7 +620,7 @@ const data = reactive({
   form: {},
   queryParams: {
     page: 1,
-    pageSize: 10,
+    size: 10,
     // userName: undefined,
     teacherId: userStore.userId,
     schoolYear: undefined,
