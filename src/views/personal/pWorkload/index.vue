@@ -354,7 +354,7 @@
                 v-model="form.teacherName"
                 placeholder="请输入用户昵称"
                 maxlength="30"
-                :disabled="!(form.id == undefined)"
+                :disabled=true
               />
             </el-form-item>
           </el-col>
@@ -895,7 +895,7 @@ function reset() {
   form.value = {
     id: undefined,
     teacherId: undefined,
-    teacherName: undefined,
+    teacherName: userStore.name,
     courseName: undefined,
     type: undefined,
     theoreticalHours: undefined,
