@@ -45,10 +45,10 @@
             />
           </el-form-item>
 
-          <el-form-item label="教材名称" prop="textbookName">
+          <el-form-item label="论文名称" prop="thesisName">
             <el-input
-              v-model="queryParams.textbookName"
-              placeholder="请输入教材名称"
+              v-model="queryParams.thesisName"
+              placeholder="请输入论文名称"
               clearable
               style="width: 240px"
               @keyup.enter="handleQuery"
@@ -71,20 +71,27 @@
             </el-select>
           </el-form-item>
 
-          <el-form-item label="ISBN" prop="isbn">
-            <el-input
-              v-model="queryParams.isbn"
-              placeholder="请输入ISBN"
+          <el-form-item label="作者类型" prop="authorType">
+            <el-select
+              v-model="queryParams.authorType"
+              placeholder="请选择作者类型"
               clearable
               style="width: 240px"
-              @keyup.enter="handleQuery"
-            />
+            >
+              <el-option
+                v-for="(item, index) in authorTypeOptions"
+                :key="index"
+                :label="item.label"
+                :value="item.value"
+                :disabled="item.disabled"
+              ></el-option>
+            </el-select>
           </el-form-item>
 
           <el-form-item label="状态" prop="status">
             <el-select
               v-model="queryParams.status"
-              placeholder="审核状态"
+              placeholder="请选择审核状态"
               clearable
               style="width: 240px"
             >
@@ -192,14 +199,14 @@
           </el-col>
           <right-toolbar
             v-model:showSearch="showSearch"
-            @queryTable="getWorkList"
+            @queryTable="getList"
             :columns="columns"
           ></right-toolbar>
         </el-row>
 
         <el-table
           v-loading="loading"
-          :data="workList"
+          :data="list"
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="50" align="center" />
@@ -219,101 +226,109 @@
             v-if="columns[1].visible"
           />
           <el-table-column
-            label="(副)主编"
+            label="作者类型"
             align="center"
-            key="editor"
-            prop="editor"
+            key="authorType"
+            prop="authorType"
             v-if="columns[2].visible"
-          />
-          <el-table-column
-            label="教材名称"
-            align="center"
-            key="textbookName"
-            prop="textbookName"
-            v-if="columns[3].visible"
-            width="160"
-          />
-          <el-table-column
-            label="ISBN"
-            align="center"
-            key="isbn"
-            prop="isbn"
-            v-if="columns[4].visible"
-            width="160"
-          />
-          <el-table-column
-            label="教材形式"
-            align="center"
-            key="textbookType"
-            prop="textbookType"
-            v-if="columns[5].visible"
             :show-overflow-tooltip="false"
           >
             <template #default="scope">
-              <span v-if="scope.row.textbookType === 0">纸质</span>
-              <span v-else-if="scope.row.textbookType === 10">电子</span>
+              <span v-if="scope.row.authorType === 10">第一作者</span>
+              <span v-else-if="scope.row.authorType === 20">通讯作者</span>
               <span v-else>未知类型</span>
             </template>
           </el-table-column>
           <el-table-column
-            label="适用层次"
+            label="论文名称"
             align="center"
-            key="applicableLevel"
-            prop="applicableLevel"
-            v-if="columns[6].visible"
-            :show-overflow-tooltip="false"
-          >
-            <template #default="scope">
-              <span v-if="scope.row.applicableLevel === 0">专科</span>
-              <span v-else-if="scope.row.applicableLevel === 10">本科</span>
-              <span v-else>研究生</span>
-            </template>
-          </el-table-column>
+            key="thesisName"
+            prop="thesisName"
+            v-if="columns[3].visible"
+            width="160"
+          />
           <el-table-column
-            label="出版社"
+            label="期刊名称"
             align="center"
-            key="press"
-            prop="press"
+            key="journalName"
+            prop="journalName"
+            v-if="columns[4].visible"
+            width="160"
+          />
+          <el-table-column
+            label="刊号"
+            align="center"
+            key="issn"
+            prop="issn"
+            v-if="columns[5].visible"
+          />
+          <el-table-column
+            label="期刊收录情况"
+            align="center"
+            key="journalInclusion"
+            prop="journalInclusion"
+            v-if="columns[6].visible"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="发表时间"
+            align="center"
+            key="timePublish"
+            prop="timePublish"
             v-if="columns[7].visible"
             :show-overflow-tooltip="true"
-          />
-          <el-table-column
-            label="是否学校立项教材"
-            align="center"
-            key="isSchoolProject"
-            prop="isSchoolProject"
-            v-if="columns[8].visible"
-            :show-overflow-tooltip="true"
           >
             <template #default="scope">
-              <span v-if="scope.row.isSchoolProject === 0">是</span>
-              <span v-else-if="scope.row.isSchoolProject === 1">否</span>
+              <span>{{ parseTime(scope.row.timePublish) }}</span>
             </template>
           </el-table-column>
           <el-table-column
-            label="获奖情况"
+            label="他引次数"
             align="center"
-            key="awards"
-            prop="awards"
+            key="otherCitations"
+            prop="otherCitations"
+            v-if="columns[8].visible"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="是否联合行业发表"
+            align="center"
+            key="isJointIndustry"
+            prop="isJointIndustry"
             v-if="columns[9].visible"
             :show-overflow-tooltip="true"
-          />
+          >
+            <template #default="scope">
+              <span v-if="scope.row.isJointIndustry === 0">是</span>
+              <span v-else-if="scope.row.isJointIndustry === 1">否</span>
+            </template>
+          </el-table-column>
           <el-table-column
-            label="获奖时间"
+            label="是否联合国际发表"
             align="center"
-            key="timeBeRewarded"
-            prop="timeBeRewarded"
+            key="isJointInternational"
+            prop="isJointInternational"
             v-if="columns[10].visible"
             :show-overflow-tooltip="true"
-          />
+          >
+            <template #default="scope">
+              <span v-if="scope.row.isJointInternational === 0">是</span>
+              <span v-else-if="scope.row.isJointInternational === 1">否</span>
+            </template>
+          </el-table-column>
           <el-table-column
-            label="修订情况"
+            label="是否是跨学科论文"
             align="center"
-            key="revision"
-            prop="revision"
+            key="isInterdiscipline"
+            prop="isInterdiscipline"
             v-if="columns[11].visible"
             :show-overflow-tooltip="true"
-          />
+          >
+            <template #default="scope">
+              <span v-if="scope.row.isInterdiscipline === 0">是</span>
+              <span v-else-if="scope.row.isInterdiscipline === 1">否</span>
+            </template>
+          </el-table-column>
           <el-table-column
             label="所属年度"
             align="center"
@@ -406,17 +421,17 @@
           :total="total"
           v-model:page="queryParams.page"
           v-model:limit="queryParams.size"
-          @pagination="getWorkList"
+          @pagination="getList"
         />
       </el-col>
     </el-row>
 
-    <!-- 添加或修改教学工作量配置对话框 -->
+    <!-- 添加或修改发表教研论文统计配置对话框 -->
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
       <el-form
         :model="form"
         :rules="rules"
-        ref="TextbookRef"
+        ref="EducationThesisRef"
         label-width="80px"
       >
         <el-row>
@@ -443,101 +458,18 @@
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="教材形式" prop="textbookType">
+            <el-form-item label="作者类型" prop="authorType">
               <el-select
-                v-model="form.textbookType"
-                placeholder="请选择教材形式"
+                v-model="form.authorType"
+                placeholder="请选择作者类型"
                 filterable
               >
                 <el-option
-                  v-for="(item, index) in typeOptions"
+                  v-for="(item, index) in authorTypeOptions"
                   :key="index"
                   :label="item.label"
                   :value="item.value"
                   :disabled="item.disabled"
-                ></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="适用层次" prop="applicableLevel">
-              <el-select
-                v-model="form.applicableLevel"
-                placeholder="请选择适用层次"
-                filterable
-              >
-                <el-option
-                  v-for="(item, index) in applicableLevels"
-                  :key="index"
-                  :label="item.label"
-                  :value="item.value"
-                  :disabled="item.disabled"
-                ></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="24">
-            <el-form-item label="ISBN" prop="isbn">
-              <el-input
-                v-model="form.isbn"
-                placeholder="请输入ISBN"
-                maxlength="60"
-              ></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="教材名称" prop="textbookName">
-              <el-input
-                v-model="form.textbookName"
-                placeholder="请输入教材名称"
-                maxlength="20"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="主编/副主编" label-width="95" prop="editor">
-              <el-input
-                v-model="form.editor"
-                placeholder="请输入主编/副主编"
-                maxlength="15"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="出版社" prop="press">
-              <el-input
-                v-model="form.press"
-                placeholder="请输入出版社"
-                maxlength="30"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="出版年月" prop="timePublish">
-              <el-input
-                v-model="form.timePublish"
-                placeholder="请输入出版年月"
-                maxlength="11"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="所属学年" prop="annual">
-              <el-select v-model="form.annual" placeholder="请选择学年">
-                <el-option
-                  v-for="dict in pm_school_year"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
                 ></el-option>
               </el-select>
             </el-form-item>
@@ -557,18 +489,57 @@
           </el-col>
         </el-row>
         <el-row>
+          <el-col :span="24">
+            <el-form-item label="论文名称" prop="thesisName">
+              <el-input
+                v-model="form.thesisName"
+                placeholder="请输入论文名称"
+                maxlength="20"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
           <el-col :span="12">
-            <el-form-item label="是否学校立项教材" label-width="135">
-              <el-radio-group v-model="form.isSchoolProject">
-                <el-radio :label="0">是</el-radio>
-                <el-radio :label="1">否</el-radio>
-              </el-radio-group>
+            <el-form-item label="期刊名称" prop="journalName">
+              <el-input
+                v-model="form.journalName"
+                placeholder="请输入期刊名称"
+                maxlength="20"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="获奖时间" prop="timeBeRewarded">
+            <el-form-item label="刊号" prop="issn">
+              <el-input
+                v-model="form.issn"
+                placeholder="请输入刊号"
+                maxlength="60"
+              ></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row>
+          <el-col :span="24">
+            <el-form-item
+              label="期刊收录情况"
+              label-width="108"
+              prop="journalInclusion"
+            >
+              <el-input
+                v-model="form.journalInclusion"
+                placeholder="请输入期刊收录情况"
+                maxlength="20"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="发表时间" prop="timePublish">
               <el-date-picker
-                v-model="form.timeBeRewarded"
+                v-model="form.timePublish"
                 type="date"
                 placeholder="选择日期"
                 @change="dateChange"
@@ -576,37 +547,54 @@
               </el-date-picker>
             </el-form-item>
           </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="24">
-            <el-form-item label="获奖情况">
+          <el-col :span="12">
+            <el-form-item label="他引次数" prop="otherCitations">
               <el-input
-                v-model="form.awards"
-                type="textarea"
-                placeholder="请输入获奖情况"
-              ></el-input>
+                v-model="form.otherCitations"
+                placeholder="请输入他引次数"
+                maxlength="15"
+              />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
-          <el-col :span="24">
-            <el-form-item label="修订情况">
-              <el-input
-                v-model="form.revision"
-                type="textarea"
-                placeholder="请输入修订情况"
-              ></el-input>
+          <el-col :span="12">
+            <el-form-item label="所属年度" prop="annual">
+              <el-select v-model="form.annual" placeholder="请选择年度">
+                <el-option
+                  v-for="dict in pm_school_year"
+                  :key="dict.value"
+                  :label="dict.label"
+                  :value="dict.value"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="是否联合行业发表" label-width="135">
+              <el-radio-group v-model="form.isJointIndustry">
+                <el-radio :label="0">是</el-radio>
+                <el-radio :label="1">否</el-radio>
+              </el-radio-group>
             </el-form-item>
           </el-col>
         </el-row>
+        <el-row> </el-row>
         <el-row>
-          <el-col :span="24">
-            <el-form-item label="再版情况">
-              <el-input
-                v-model="form.reprint"
-                type="textarea"
-                placeholder="请输入再版情况"
-              ></el-input>
+          <el-col :span="12">
+            <el-form-item label="是否联合国际发表" label-width="135">
+              <el-radio-group v-model="form.isJointInternational">
+                <el-radio :label="0">是</el-radio>
+                <el-radio :label="1">否</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="是否是跨学科论文" label-width="135">
+              <el-radio-group v-model="form.isInterdiscipline">
+                <el-radio :label="0">是</el-radio>
+                <el-radio :label="1">否</el-radio>
+              </el-radio-group>
             </el-form-item>
           </el-col>
         </el-row>
@@ -673,24 +661,15 @@
 
 <script setup name="User">
 import { getToken } from "@/utils/auth";
+import { deptTreeSelect } from "@/api/system/user";
 import {
-  changeUserStatus,
-  listUser,
-  resetUserPwd,
-  delUser,
-  getUser,
-  updateUser,
-  addUser,
-  deptTreeSelect,
-} from "@/api/system/user";
-import {
-  listTextbook,
-  getTextbook,
-  addTextbook,
-  updateTextbook,
+  listEducationThesis,
+  getEducationThesis,
+  addEducationThesis,
+  updateEducationThesis,
   examine,
-  delTextbook,
-} from "@/api/performance/textbook";
+  delEducationThesis,
+} from "@/api/performance/educationThesis.js";
 import { get } from "@vueuse/core";
 import useUserStore from "@/store/modules/user";
 
@@ -703,8 +682,7 @@ const { sys_normal_disable, sys_user_sex, pm_school_year } = proxy.useDict(
   "pm_school_year"
 );
 
-const userList = ref([]);
-const workList = ref([]);
+const list = ref([]);
 const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
@@ -732,7 +710,9 @@ const upload = reactive({
   // 设置上传的请求头部
   headers: { Authorization: getToken() },
   // 上传的地址
-  url: import.meta.env.VITE_APP_BASE_API + "/performance/textbook/importData",
+  url:
+    import.meta.env.VITE_APP_BASE_API +
+    "/performance/education_thesis/importData",
 });
 // 列显隐信息
 const columns = ref([
@@ -758,14 +738,14 @@ const data = reactive({
   queryParams: {
     page: 1,
     size: 10,
-    teacherName: undefined,
+    authorName: undefined,
     // userCode: userStore.name,
     annual: undefined,
     status: undefined,
     deptId: undefined,
   },
   rules: {
-    teacherName: [
+    authorName: [
       { required: true, message: "作者姓名不能为空", trigger: "blur" },
       {
         min: 2,
@@ -774,7 +754,7 @@ const data = reactive({
         trigger: "blur",
       },
     ],
-    userCode: [
+    authorCode: [
       { required: true, message: "作者工号不能为空", trigger: "blur" },
       {
         min: 5,
@@ -783,16 +763,12 @@ const data = reactive({
         trigger: "blur",
       },
     ],
-    textbookType: [
-      { required: true, message: "教材形式不能为空", trigger: "change" },
+    authorType: [
+      { required: true, message: "作者类型不能为空", trigger: "change" },
     ],
-    applicableLevel: [
-      { required: true, message: "适用层次不能为空", trigger: "change" },
+    thesisName: [
+      { required: true, message: "论文名称不能为空", trigger: "change" },
     ],
-    textbookName: [
-      { required: true, message: "教材名称不能为空", trigger: "blur" },
-    ],
-    isbn: [{ required: true, message: "ISBN不能为空", trigger: "blur" }],
     annual: [
       {
         required: true,
@@ -823,14 +799,14 @@ const data = reactive({
       value: 60,
     },
   ],
-  typeOptions: [
+  authorTypeOptions: [
     {
-      label: "纸质",
-      value: 0,
+      label: "第一作者",
+      value: 10,
     },
     {
-      label: "电子",
-      value: 10,
+      label: "通讯作者",
+      value: 20,
     },
   ],
   applicableLevels: [
@@ -854,7 +830,7 @@ const {
   form,
   rules,
   statusOptions,
-  typeOptions,
+  authorTypeOptions,
   applicableLevels,
 } = toRefs(data);
 
@@ -874,15 +850,15 @@ function getDeptTree() {
   });
 }
 /** 查询工作量明细列表 */
-function getWorkList() {
+function getList() {
   loading.value = true;
-  listTextbook(proxy.addDateRange(queryParams.value, dateRange.value)).then(
-    (res) => {
-      loading.value = false;
-      workList.value = res.data;
-      total.value = res.total;
-    }
-  );
+  listEducationThesis(
+    proxy.addDateRange(queryParams.value, dateRange.value)
+  ).then((res) => {
+    loading.value = false;
+    list.value = res.data;
+    total.value = res.total;
+  });
 }
 /** 节点单击事件 */
 function handleNodeClick(data) {
@@ -892,7 +868,7 @@ function handleNodeClick(data) {
 /** 搜索按钮操作 */
 function handleQuery() {
   queryParams.value.page = 1;
-  getWorkList();
+  getList();
 }
 /** 重置按钮操作 */
 function resetQuery() {
@@ -908,10 +884,10 @@ function handleDelete(row) {
   proxy.$modal
     .confirm("是否确认删除数据项？")
     .then(function () {
-      return delTextbook(workIds);
+      return delEducationThesis(workIds);
     })
     .then(() => {
-      getWorkList();
+      getList();
       proxy.$modal.msgSuccess("删除成功");
     })
     .catch(() => {});
@@ -919,11 +895,11 @@ function handleDelete(row) {
 /** 导出按钮操作 */
 function handleExport() {
   proxy.download(
-    "/performance/textbook/export",
+    "/performance/education_thesis/export",
     {
       ...queryParams.value,
     },
-    `教材出版统计表.xlsx`
+    `发表教研论文统计表.xlsx`
   );
 }
 /** 选择条数  */
@@ -934,15 +910,15 @@ function handleSelectionChange(selection) {
 }
 /** 导入按钮操作 */
 function handleImport() {
-  upload.title = "教材出版统计导入";
+  upload.title = "发表教研论文统计导入";
   upload.open = true;
 }
 /** 下载模板操作 */
 function importTemplate() {
   proxy.download(
-    "/performance/textbook/importTemplate",
+    "/performance/education_thesis/importTemplate",
     {},
-    `教材出版统计上传模板.xlsx`
+    `发表教研论文统计上传模板.xlsx`
   );
 }
 /**文件上传中处理 */
@@ -961,7 +937,7 @@ const handleFileSuccess = (response, file, fileList) => {
     "导入结果",
     { dangerouslyUseHTMLString: true }
   );
-  getWorkList();
+  getList();
 };
 /** 提交上传文件 */
 function submitFileForm() {
@@ -974,22 +950,20 @@ function reset() {
     isbn: undefined,
     authorCode: undefined,
     authorName: undefined,
-    textbookName: undefined,
-    textbookType: undefined,
-    applicableLevel: undefined,
-    press: undefined,
+    authorType: undefined,
+    thesisName: undefined,
+    journalName: undefined,
+    issn: undefined,
+    journalInclusion: undefined,
     timePublish: undefined,
-    isSchoolProject: 0,
-    editor: undefined,
-    awards: undefined,
-    annual: undefined,
-    timeBeRewarded: undefined,
-    revision: undefined,
-    reprint: undefined,
+    otherCitations: undefined,
+    isJointIndustry: 1,
+    isJointInternational: 1,
+    isInterdiscipline: 1,
     status: 10,
-    remark: undefined,
+    annual: undefined,
   };
-  proxy.resetForm("TextbookRef");
+  proxy.resetForm("EducationThesisRef");
 }
 /** 取消按钮 */
 function cancel() {
@@ -1000,20 +974,20 @@ function cancel() {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加教学工作量明细";
+  title.value = "添加发表教研论文统计";
 }
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
   const id = row.id || ids.value;
-  getTextbook(id).then((response) => {
+  getEducationThesis(id).then((response) => {
     form.value = response.data;
     postOptions.value = response.posts;
     roleOptions.value = response.roles;
     form.value.postIds = response.postIds;
     form.value.roleIds = response.roleIds;
     open.value = true;
-    title.value = "修改教学工作量";
+    title.value = "修改发表教研论文统计";
     form.password = "";
   });
 }
@@ -1028,7 +1002,7 @@ function handleExamine(row) {
       return examine(workIds, 10);
     })
     .then(() => {
-      getWorkList();
+      getList();
       proxy.$modal.msgSuccess("操作成功");
     })
     .catch(() => {});
@@ -1044,26 +1018,26 @@ function handleReject(row) {
       return examine(workIds, 20);
     })
     .then(() => {
-      getWorkList();
+      getList();
       proxy.$modal.msgSuccess("操作成功");
     })
     .catch(() => {});
 }
 /** 提交按钮 */
 function submitForm() {
-  proxy.$refs["TextbookRef"].validate((valid) => {
+  proxy.$refs["EducationThesisRef"].validate((valid) => {
     if (valid) {
       if (form.value.id != undefined) {
-        updateTextbook(form.value).then((response) => {
+        updateEducationThesis(form.value).then((response) => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
-          getWorkList();
+          getList();
         });
       } else {
-        addTextbook(form.value).then((response) => {
+        addEducationThesis(form.value).then((response) => {
           proxy.$modal.msgSuccess("新增成功");
           open.value = false;
-          getWorkList();
+          getList();
         });
       }
     }
@@ -1071,5 +1045,5 @@ function submitForm() {
 }
 
 getDeptTree();
-getWorkList();
+getList();
 </script>
