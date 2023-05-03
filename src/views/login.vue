@@ -28,6 +28,7 @@
           auto-complete="off"
           placeholder="密码"
           @keyup.enter="handleLogin"
+          show-password
         >
           <template #prefix
             ><svg-icon icon-class="password" class="el-input__icon input-icon"

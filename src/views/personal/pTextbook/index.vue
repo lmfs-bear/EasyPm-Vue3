@@ -1,7 +1,6 @@
 <template>
   <div class="app-container">
     <el-row :gutter="20">
-      <!--用户数据-->
       <el-col :span="24" :xs="24">
         <el-form
           :model="queryParams"
@@ -10,16 +9,6 @@
           v-show="showSearch"
           label-width="68px"
         >
-          <el-form-item label="教师姓名" prop="teacherName">
-            <el-input
-              v-model="queryParams.teacherName"
-              placeholder="请输入教师姓名"
-              clearable
-              style="width: 240px"
-              @keyup.enter="handleQuery"
-            />
-          </el-form-item>
-
           <el-form-item label="教材名称" prop="textbookName">
             <el-input
               v-model="queryParams.textbookName"
@@ -38,7 +27,7 @@
               style="width: 240px"
             >
               <el-option
-                v-for="dict in pm_school_year"
+                v-for="dict in pm_year"
                 :key="dict.value"
                 :label="dict.label"
                 :value="dict.value"
@@ -125,24 +114,13 @@
           </el-col>
           <el-col :span="1.5">
             <el-button
-              type="success"
+              type="primary"
               plain
-              icon="document-checked"
+              icon="document-add"
               :disabled="multiple"
               @click="handleExamine"
-              v-hasPermi="['pm:workload:examine']"
-              >审核通过</el-button
-            >
-          </el-col>
-          <el-col :span="1.5">
-            <el-button
-              type="danger"
-              plain
-              icon="document-delete"
-              :disabled="multiple"
-              @click="handleReject"
-              v-hasPermi="['pm:workload:examine']"
-              >审核不通过</el-button
+              v-hasPermi="['pm:workload:submit']"
+              >提交审核</el-button
             >
           </el-col>
           <el-col :span="1.5">
@@ -342,22 +320,13 @@
                   v-hasPermi="['pm:workload:edit']"
                 ></el-button>
               </el-tooltip>
-              <el-tooltip content="审核通过" placement="top">
+              <el-tooltip content="提交审核" placement="top">
                 <el-button
                   link
                   type="primary"
                   icon="document-checked"
                   @click="handleExamine(scope.row)"
-                  v-hasPermi="['pm:workload:examine']"
-                ></el-button>
-              </el-tooltip>
-              <el-tooltip content="审核不通过" placement="top">
-                <el-button
-                  link
-                  type="primary"
-                  icon="document-delete"
-                  @click="handleReject(scope.row)"
-                  v-hasPermi="['pm:workload:examine']"
+                  v-hasPermi="['pm:workload:submit']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip
@@ -509,7 +478,7 @@
             <el-form-item label="所属学年" prop="annual">
               <el-select v-model="form.annual" placeholder="请选择学年">
                 <el-option
-                  v-for="dict in pm_school_year"
+                  v-for="dict in pm_year"
                   :key="dict.value"
                   :label="dict.label"
                   :value="dict.value"
@@ -668,6 +637,7 @@ import {
   addTextbook,
   updateTextbook,
   examine,
+  submit,
   delTextbook,
 } from "@/api/performance/textbook";
 import { get } from "@vueuse/core";
@@ -676,10 +646,10 @@ import useUserStore from "@/store/modules/user";
 const userStore = useUserStore();
 const router = useRouter();
 const { proxy } = getCurrentInstance();
-const { sys_normal_disable, sys_user_sex, pm_school_year } = proxy.useDict(
+const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
   "sys_normal_disable",
   "sys_user_sex",
-  "pm_school_year"
+  "pm_year"
 );
 
 const userList = ref([]);
@@ -737,14 +707,13 @@ const data = reactive({
   queryParams: {
     page: 1,
     size: 10,
-    teacherName: undefined,
     userCode: userStore.userName,
     annual: undefined,
     status: undefined,
     deptId: undefined,
   },
   rules: {
-    teacherName: [
+    authorName: [
       { required: true, message: "作者姓名不能为空", trigger: "blur" },
       {
         min: 2,
@@ -753,7 +722,7 @@ const data = reactive({
         trigger: "blur",
       },
     ],
-    userCode: [
+    authorCode: [
       { required: true, message: "作者工号不能为空", trigger: "blur" },
       {
         min: 5,
@@ -996,31 +965,15 @@ function handleUpdate(row) {
     form.password = "";
   });
 }
-/** 审核通过按钮操作 */
+/** 提交审核按钮操作 */
 function handleExamine(row) {
   var arr = [];
   if (row.id !== undefined) arr.push(row.id);
   const workIds = arr.length <= 0 ? ids.value : arr;
   proxy.$modal
-    .confirm("是否确认审核通过选中的数据项？")
+    .confirm("是否确认提交审核选中的数据项？")
     .then(function () {
-      return examine(workIds, 10);
-    })
-    .then(() => {
-      getWorkList();
-      proxy.$modal.msgSuccess("操作成功");
-    })
-    .catch(() => {});
-}
-/** 审核驳回按钮操作 */
-function handleReject(row) {
-  var arr = [];
-  if (row.id !== undefined) arr.push(row.id);
-  const workIds = arr.length <= 0 ? ids.value : arr;
-  proxy.$modal
-    .confirm("是否确认驳回选中的数据项？")
-    .then(function () {
-      return examine(workIds, 20);
+      return submit(workIds);
     })
     .then(() => {
       getWorkList();

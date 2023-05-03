@@ -54,7 +54,7 @@
               style="width: 240px"
             >
               <el-option
-                v-for="dict in pm_school_year"
+                v-for="dict in pm_year"
                 :key="dict.value"
                 :label="dict.label"
                 :value="dict.value"
@@ -131,24 +131,13 @@
           </el-col>
           <el-col :span="1.5">
             <el-button
-              type="success"
+              type="primary"
               plain
-              icon="document-checked"
+              icon="document-add"
               :disabled="multiple"
               @click="handleExamine"
-              v-hasPermi="['pm:workload:examine']"
-              >审核通过</el-button
-            >
-          </el-col>
-          <el-col :span="1.5">
-            <el-button
-              type="danger"
-              plain
-              icon="document-delete"
-              :disabled="multiple"
-              @click="handleReject"
-              v-hasPermi="['pm:workload:examine']"
-              >审核不通过</el-button
+              v-hasPermi="['pm:workload:submit']"
+              >提交审核</el-button
             >
           </el-col>
           <el-col :span="1.5">
@@ -313,22 +302,13 @@
                   v-hasPermi="['pm:workload:edit']"
                 ></el-button>
               </el-tooltip>
-              <el-tooltip content="审核通过" placement="top">
+              <el-tooltip content="提交审核" placement="top">
                 <el-button
                   link
                   type="primary"
                   icon="document-checked"
                   @click="handleExamine(scope.row)"
-                  v-hasPermi="['pm:workload:examine']"
-                ></el-button>
-              </el-tooltip>
-              <el-tooltip content="审核不通过" placement="top">
-                <el-button
-                  link
-                  type="primary"
-                  icon="document-delete"
-                  @click="handleReject(scope.row)"
-                  v-hasPermi="['pm:workload:examine']"
+                  v-hasPermi="['pm:workload:submit']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip
@@ -478,7 +458,7 @@
             <el-form-item label="所属年度" prop="annual">
               <el-select v-model="form.annual" placeholder="请选择年度">
                 <el-option
-                  v-for="dict in pm_school_year"
+                  v-for="dict in pm_year"
                   :key="dict.value"
                   :label="dict.label"
                   :value="dict.value"
@@ -568,6 +548,7 @@ import {
   addPatents,
   updatePatents,
   examine,
+  submit,
   delPatents,
 } from "@/api/performance/patents.js";
 import { get } from "@vueuse/core";
@@ -576,10 +557,10 @@ import useUserStore from "@/store/modules/user";
 const userStore = useUserStore();
 const router = useRouter();
 const { proxy } = getCurrentInstance();
-const { sys_normal_disable, sys_user_sex, pm_school_year } = proxy.useDict(
+const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
   "sys_normal_disable",
   "sys_user_sex",
-  "pm_school_year"
+  "pm_year"
 );
 
 const list = ref([]);
@@ -874,18 +855,18 @@ function handleUpdate(row) {
     form.password = "";
   });
 }
-/** 审核通过按钮操作 */
+/** 提交审核按钮操作 */
 function handleExamine(row) {
   var arr = [];
   if (row.id !== undefined) arr.push(row.id);
   const workIds = arr.length <= 0 ? ids.value : arr;
   proxy.$modal
-    .confirm("是否确认审核通过选中的数据项？")
+    .confirm("是否确认提交审核选中的数据项？")
     .then(function () {
-      return examine(workIds, 10);
+      return submit(workIds);
     })
     .then(() => {
-      getList();
+      getWorkList();
       proxy.$modal.msgSuccess("操作成功");
     })
     .catch(() => {});

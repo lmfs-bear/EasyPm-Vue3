@@ -131,7 +131,7 @@
               icon="Delete"
               :disabled="multiple"
               @click="handleDelete"
-              v-hasPermi="['system:user:remove']"
+              v-hasPermi="['pm:workload:remove']"
               >删除</el-button
             >
           </el-col>

@@ -57,13 +57,13 @@
 
           <el-form-item label="所属年度" prop="annual">
             <el-select
-              v-model="queryParams.schoolYear"
+              v-model="queryParams.annual"
               placeholder="请选择年度"
               clearable
               style="width: 240px"
             >
               <el-option
-                v-for="dict in pm_school_year"
+                v-for="dict in pm_year"
                 :key="dict.value"
                 :label="dict.label"
                 :value="dict.value"
@@ -534,7 +534,7 @@
             <el-form-item label="所属学年" prop="annual">
               <el-select v-model="form.annual" placeholder="请选择学年">
                 <el-option
-                  v-for="dict in pm_school_year"
+                  v-for="dict in pm_year"
                   :key="dict.value"
                   :label="dict.label"
                   :value="dict.value"
@@ -697,10 +697,10 @@ import useUserStore from "@/store/modules/user";
 const userStore = useUserStore();
 const router = useRouter();
 const { proxy } = getCurrentInstance();
-const { sys_normal_disable, sys_user_sex, pm_school_year } = proxy.useDict(
+const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
   "sys_normal_disable",
   "sys_user_sex",
-  "pm_school_year"
+  "pm_year"
 );
 
 const userList = ref([]);
