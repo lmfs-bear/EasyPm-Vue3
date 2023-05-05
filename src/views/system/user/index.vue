@@ -222,7 +222,6 @@
               <el-tooltip
                 content="修改"
                 placement="top"
-                v-if="scope.row.isAdmin !== true"
               >
                 <el-button
                   link
@@ -248,7 +247,6 @@
               <el-tooltip
                 content="重置密码"
                 placement="top"
-                v-if="scope.row.isAdmin !== true"
               >
                 <el-button
                   link
@@ -261,7 +259,6 @@
               <el-tooltip
                 content="分配角色"
                 placement="top"
-                v-if="scope.row.isAdmin !== true"
               >
                 <el-button
                   link

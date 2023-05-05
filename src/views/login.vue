@@ -77,7 +77,7 @@
     </el-form>
     <!--  底部  -->
     <div class="el-login-footer">
-      <span>Copyright © 2018-2023 ruoyi.vip All Rights Reserved.</span>
+      <span>Copyright © 2022-2023 ZhangJinMing All Rights Reserved.</span>
     </div>
   </div>
 </template>
@@ -181,7 +181,7 @@ getCookie();
   justify-content: center;
   align-items: center;
   height: 100%;
-  background-image: url("../assets/images/login-background.jpg");
+  background-image: url("../assets/images/fzu-background.jpg");
   background-size: cover;
 }
 .title {
