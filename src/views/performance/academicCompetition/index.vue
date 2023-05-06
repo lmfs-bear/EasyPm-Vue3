@@ -45,9 +45,9 @@
             />
           </el-form-item>
 
-          <el-form-item label="名称" prop="name">
+          <el-form-item label="竞赛名称" prop="competitionName">
             <el-input
-              v-model="queryParams.name"
+              v-model="queryParams.competitionName"
               placeholder="请输入名称"
               clearable
               style="width: 240px"
@@ -55,15 +55,32 @@
             />
           </el-form-item>
 
-          <el-form-item label="类别" prop="type">
+          <el-form-item label="获奖类别" prop="awardType">
             <el-select
-              v-model="queryParams.type"
-              placeholder="请选择类别"
+              v-model="queryParams.awardType"
+              placeholder="请选择获奖类别"
               clearable
               style="width: 240px"
             >
               <el-option
                 v-for="(item, index) in typeOptions"
+                :key="index"
+                :label="item.label"
+                :value="item.value"
+                :disabled="item.disabled"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="获奖等级" prop="awardLevel">
+            <el-select
+              v-model="queryParams.awardLevel"
+              placeholder="请选择获奖等级"
+              clearable
+              style="width: 240px"
+            >
+              <el-option
+                v-for="(item, index) in awardLevelOptions"
                 :key="index"
                 :label="item.label"
                 :value="item.value"
@@ -211,13 +228,21 @@
         >
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column
-            label="学号"
+            label="学号 学生姓名"
+            :width="120"
             align="center"
             key="studentNum"
             prop="studentNum"
             v-if="columns[0].visible"
             :show-overflow-tooltip="true"
-          />
+          >
+            <template #default="scope">
+              <div v-for="item in scope.row.students" :key="item.id">
+                {{ item.studentNum }} {{ item.studentName }}
+              </div>
+            </template>
+          </el-table-column>
+
           <el-table-column
             label="学生姓名"
             align="center"
@@ -226,42 +251,18 @@
             v-if="columns[1].visible"
           />
           <el-table-column
-            label="名称"
+            label="竞赛名称"
             align="center"
-            key="name"
-            prop="name"
+            key="competitionName"
+            prop="competitionName"
             v-if="columns[2].visible"
             width="160"
           />
           <el-table-column
-            label="类型"
+            label="获奖时间"
             align="center"
-            key="type"
-            prop="type"
-            v-if="columns[3].visible"
-            :show-overflow-tooltip="false"
-          >
-            <template #default="scope">
-              <span v-if="scope.row.type === 0">发明专利</span>
-              <span v-else-if="scope.row.type === 10">实用新型专利</span>
-              <span v-else-if="scope.row.type === 20">外观设计专利</span>
-              <span v-else-if="scope.row.type === 30">著作权</span>
-              <span v-else>未知类型</span>
-            </template>
-          </el-table-column>
-
-          <el-table-column
-            label="授权号"
-            align="center"
-            key="authorizationNum"
-            prop="authorizationNum"
-            v-if="columns[4].visible"
-          />
-          <el-table-column
-            label="获批时间"
-            align="center"
-            key="timeApproval"
-            prop="timeApproval"
+            key="timeAward"
+            prop="timeAward"
             v-if="columns[5].visible"
             :show-overflow-tooltip="true"
           >
@@ -270,18 +271,61 @@
             </template>
           </el-table-column>
           <el-table-column
-            label="第几发明人"
+            label="获奖类别"
             align="center"
-            key="whichInventor"
-            prop="whichInventor"
-            v-if="columns[6].visible"
-            :show-overflow-tooltip="true"
-          />
+            key="awardType"
+            prop="awardType"
+            v-if="columns[3].visible"
+            :show-overflow-tooltip="false"
+          >
+            <template #default="scope">
+              <span v-if="scope.row.awardType === 10">国家级</span>
+              <span v-else-if="scope.row.awardType === 20">省部级</span>
+              <span v-else>未知类型</span>
+            </template>
+          </el-table-column>
           <el-table-column
-            label="指导教师"
+            label="获奖等级"
             align="center"
-            key="teacherName"
-            prop="teacherName"
+            key="awardLevel"
+            prop="awardLevel"
+            v-if="columns[3].visible"
+            :show-overflow-tooltip="false"
+          >
+            <template #default="scope">
+              <span v-if="scope.row.awardLevel === 10">一等奖</span>
+              <span v-else-if="scope.row.awardLevel === 20">二等奖</span>
+              <span v-else-if="scope.row.awardLevel === 30">三等奖</span>
+              <span v-else>未知类型</span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            label="团队或个人"
+            align="center"
+            key="isTeam"
+            prop="isTeam"
+            v-if="columns[3].visible"
+            :show-overflow-tooltip="false"
+          >
+            <template #default="scope">
+              <span v-if="scope.row.isTeam === 0">团队</span>
+              <span v-else-if="scope.row.isTeam === 1">个人</span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            label="竞赛名称"
+            align="center"
+            key="competitionName"
+            prop="competitionName"
+            v-if="columns[2].visible"
+            width="160"
+          />
+
+          <el-table-column
+            label="获奖作品"
+            align="center"
+            key="awardWinningWork"
+            prop="awardWinningWork"
             v-if="columns[7].visible"
             :show-overflow-tooltip="true"
           />
@@ -386,6 +430,75 @@
     <!-- 添加或修改发表教研论文统计配置对话框 -->
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
       <el-form :model="form" :rules="rules" ref="PatentsRef" label-width="80px">
+        <div style="padding: 0px 0px 20px">
+          <div v-for="(item, index) in form.students" :key="index">
+            <el-form-item
+              :label="index + 1 + '.学生学号'"
+              :rules="itemRules"
+              :prop="'students.' + index + '.studentNum'"
+            >
+              <el-input v-model="item.studentNum" placeholder="请输入...">
+              </el-input>
+            </el-form-item>
+
+            <el-form-item
+              :label="index + 1 + '.学生姓名'"
+              :rules="itemRules"
+              :prop="'students.' + index + '.studentName'"
+            >
+              <el-input v-model="item.studentName" placeholder="请输入...">
+              </el-input>
+            </el-form-item>
+          </div>
+
+          <el-button @click="continueAdd"
+            ><el-icon><Plus /></el-icon>添加学生</el-button
+          >
+        </div>
+
+        <div v-for="(item, index) in form.students" :key="index">
+          <!-- 嵌套的el-form   model绑定的是voucherInfo.cash里面的对象 -->
+          <!-- 又定义了一个rules :rules="subVoucherRule"-->
+          <el-row>
+            <el-col :span="9">
+              <el-form-item prop="studentNum" :label="index + 1 + '.学号'">
+                <el-input
+                  v-model="item.studentNum"
+                  palceholder="请输入学生学号"
+                >
+                </el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="10">
+              <el-form-item prop="studentName" :label="'学生姓名'">
+                <el-input
+                  v-model="item.studentNum"
+                  palceholder="请输入学生姓名"
+                >
+                </el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="1"> </el-col>
+            <el-col :span="4">
+              <el-button
+                type="primary"
+                icon="Plus"
+                circle
+                @click="handleAddClick(index)"
+              >
+              </el-button>
+              <el-button
+                type="danger"
+                icon="Delete"
+                circle
+                @click="handleMinusClick(index)"
+                v-if="index !== 0"
+              >
+              </el-button>
+            </el-col>
+          </el-row>
+        </div>
+
         <el-row>
           <el-col :span="12">
             <el-form-item label="学号" prop="studentNum">
@@ -634,9 +747,7 @@ const upload = reactive({
   // 设置上传的请求头部
   headers: { Authorization: getToken() },
   // 上传的地址
-  url:
-    import.meta.env.VITE_APP_BASE_API +
-    "/performance/patents/importData",
+  url: import.meta.env.VITE_APP_BASE_API + "/performance/patents/importData",
 });
 // 列显隐信息
 const columns = ref([
@@ -662,9 +773,9 @@ const data = reactive({
   queryParams: {
     page: 1,
     size: 10,
-    studentName: undefined,
-    name: undefined,
-    type: undefined,
+    competitionName: undefined,
+    awardLevel: undefined,
+    awardType: undefined,
     // userCode: userStore.name,
     annual: undefined,
     status: undefined,
@@ -721,25 +832,38 @@ const data = reactive({
   ],
   typeOptions: [
     {
-      label: "发明专利",
-      value: 0,
-    },
-    {
-      label: "实用新型专利",
+      label: "国家级",
       value: 10,
     },
     {
-      label: "外观设计专利",
+      label: "省部级",
+      value: 20,
+    },
+  ],
+  awardLevelOptions: [
+    {
+      label: "一等奖",
+      value: 10,
+    },
+    {
+      label: "二等奖",
       value: 20,
     },
     {
-      label: "著作权",
+      label: "三等奖",
       value: 30,
     },
   ],
 });
 
-const { queryParams, form, rules, statusOptions, typeOptions } = toRefs(data);
+const {
+  queryParams,
+  form,
+  rules,
+  statusOptions,
+  typeOptions,
+  awardLevelOptions,
+} = toRefs(data);
 
 /** 通过条件过滤节点  */
 const filterNode = (value, data) => {
@@ -806,7 +930,7 @@ function handleExport() {
     {
       ...queryParams.value,
     },
-    `本科生专利（著作权）授权情况一览表.xlsx`
+    `本科生参加学科竞赛获奖情况一览表.xlsx`
   );
 }
 /** 选择条数  */
@@ -817,7 +941,7 @@ function handleSelectionChange(selection) {
 }
 /** 导入按钮操作 */
 function handleImport() {
-  upload.title = "本科生专利（著作权）授权情况统计导入";
+  upload.title = "本科生参加学科竞赛获奖情况统计导入";
   upload.open = true;
 }
 /** 下载模板操作 */
@@ -825,7 +949,7 @@ function importTemplate() {
   proxy.download(
     "/performance/patents/importTemplate",
     {},
-    `本科生专利（著作权）授权情况上传模板.xlsx`
+    `本科生参加学科竞赛获奖情况上传模板.xlsx`
   );
 }
 /**文件上传中处理 */
@@ -869,6 +993,7 @@ function reset() {
     isInterdiscipline: 1,
     status: 10,
     annual: undefined,
+    students: [{ studentNum: "", studentName: "" }],
   };
   proxy.resetForm("PatentsRef");
 }
@@ -881,7 +1006,7 @@ function cancel() {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加本科生专利（著作权）授权情况";
+  title.value = "添加本科生参加学科竞赛获奖情况";
 }
 /** 修改按钮操作 */
 function handleUpdate(row) {
@@ -894,7 +1019,7 @@ function handleUpdate(row) {
     form.value.postIds = response.postIds;
     form.value.roleIds = response.roleIds;
     open.value = true;
-    title.value = "修改本科生专利（著作权）授权情况";
+    title.value = "修改本科生参加学科竞赛获奖情况";
     form.password = "";
   });
 }
@@ -949,6 +1074,21 @@ function submitForm() {
       }
     }
   });
+}
+function continueAdd() {
+  form.value.students.push({
+    studentNum: "",
+    studentName: "",
+  });
+}
+function handleAddClick(index) {
+  form.value.students.splice(index + 1, 0, {
+    studentNum: "",
+    studentName: "",
+  });
+}
+function handleMinusClick(index) {
+  form.value.students.splice(index, 1);
 }
 
 getDeptTree();
