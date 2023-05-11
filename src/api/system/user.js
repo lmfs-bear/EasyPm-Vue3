@@ -60,7 +60,7 @@ export function resetUserPwd(userId, password) {
 // 用户状态修改
 export function changeUserStatus(userId, status) {
   return request({
-    url: '/user/changeStatus/'+userId+'/'+status,
+    url: '/user/changeStatus/' + userId + '/' + status,
     method: 'put',
   })
 }
@@ -127,4 +127,24 @@ export function deptTreeSelect() {
     url: '/user/deptTree',
     method: 'get'
   })
+}
+
+export function userSelect() {
+  return request({
+    url: '/user/list',
+    method: 'get'
+  })
+}
+
+/**
+ * 获取用户下拉列表
+ */
+export function useUsers() {
+  const res = ref([{ userName: '', name: '' }]);
+  return (() => {
+    userSelect().then(resp => {
+      res.value = resp.data.map(p => ({ userName: p.userName, name: p.name }))
+    })
+    return res;
+  })()
 }

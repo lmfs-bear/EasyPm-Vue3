@@ -419,7 +419,7 @@
         ref="TextbookRef"
         label-width="80px"
       >
-        <el-row>
+        <!-- <el-row>
           <el-col :span="12">
             <el-form-item label="作者姓名" prop="authorName">
               <el-input
@@ -440,7 +440,53 @@
               />
             </el-form-item>
           </el-col>
+        </el-row> -->
+
+        <el-row>
+          <el-col :span="12">
+            <el-form-item
+              label="作者姓名"
+              prop="authorName"
+              :disabled="!(form.id == undefined)"
+            >
+              <el-select
+                v-model="form.authorName"
+                @change="selectChangeParent"
+                placeholder="请选择作者工号:姓名"
+                filterable
+              >
+                <el-option
+                  v-for="(user, index) in userSelect"
+                  :key="index"
+                  :label="`${user.userName}:${user.name}`"
+                  :value="index"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item
+              label="作者工号"
+              prop="authorCode"
+              :disabled="!(form.id == undefined)"
+            >
+              <el-select
+                v-model="form.authorCode"
+                @change="selectChangeParent"
+                placeholder="请选择作者工号"
+                filterable
+              >
+                <el-option
+                  v-for="(user, index) in userSelect"
+                  :key="index"
+                  :label="`${user.userName}`"
+                  :value="index"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
         </el-row>
+
         <el-row>
           <el-col :span="12">
             <el-form-item label="教材形式" prop="textbookType">
@@ -484,6 +530,7 @@
                 v-model="form.isbn"
                 placeholder="请输入ISBN"
                 maxlength="60"
+                clearable
               ></el-input>
             </el-form-item>
           </el-col>
@@ -495,6 +542,7 @@
                 v-model="form.textbookName"
                 placeholder="请输入教材名称"
                 maxlength="20"
+                clearable
               />
             </el-form-item>
           </el-col>
@@ -673,16 +721,7 @@
 
 <script setup name="User">
 import { getToken } from "@/utils/auth";
-import {
-  changeUserStatus,
-  listUser,
-  resetUserPwd,
-  delUser,
-  getUser,
-  updateUser,
-  addUser,
-  deptTreeSelect,
-} from "@/api/system/user";
+import { deptTreeSelect } from "@/api/system/user";
 import {
   listTextbook,
   getTextbook,
@@ -697,6 +736,7 @@ import useUserStore from "@/store/modules/user";
 const userStore = useUserStore();
 const router = useRouter();
 const { proxy } = getCurrentInstance();
+const userSelect = proxy.useUsers();
 const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
   "sys_normal_disable",
   "sys_user_sex",
@@ -1068,6 +1108,13 @@ function submitForm() {
       }
     }
   });
+}
+
+function selectChangeParent(index) {
+  form.value.authorCode = userSelect.value[index].userName;
+  form.value.authorName = userSelect.value[index].name;
+  // form.value.authorCode = index.split(":")[0];
+  // form.value.authorName = index.split(":")[1];
 }
 
 getDeptTree();
