@@ -692,7 +692,7 @@ const data = reactive({
     annual: [
       {
         required: true,
-        message: "请选择学年",
+        message: "请选择年度",
         trigger: "change",
       },
     ],

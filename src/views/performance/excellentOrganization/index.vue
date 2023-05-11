@@ -35,30 +35,20 @@
           v-show="showSearch"
           label-width="68px"
         >
-          <el-form-item label="学生姓名" prop="studentName">
+          <el-form-item label="竞赛名称" prop="competitionName">
             <el-input
-              v-model="queryParams.studentName"
-              placeholder="请输入学生姓名"
+              v-model="queryParams.competitionName"
+              placeholder="请输入竞赛名称"
               clearable
               style="width: 240px"
               @keyup.enter="handleQuery"
             />
           </el-form-item>
 
-          <el-form-item label="名称" prop="name">
-            <el-input
-              v-model="queryParams.name"
-              placeholder="请输入名称"
-              clearable
-              style="width: 240px"
-              @keyup.enter="handleQuery"
-            />
-          </el-form-item>
-
-          <el-form-item label="类别" prop="type">
+          <el-form-item label="竞赛级别" prop="competitionLevel">
             <el-select
-              v-model="queryParams.type"
-              placeholder="请选择类别"
+              v-model="queryParams.competitionLevel"
+              placeholder="请选择竞赛级别"
               clearable
               style="width: 240px"
             >
@@ -211,78 +201,61 @@
         >
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column
-            label="学号"
+            label="竞赛时间"
             align="center"
-            key="studentNum"
-            prop="studentNum"
+            key="timeCompetition"
+            prop="timeCompetition"
             v-if="columns[0].visible"
             :show-overflow-tooltip="true"
-          />
+          >
+            <template #default="scope">
+              <span>{{ parseTime(scope.row.timeCompetition, "{y}-{m}") }}</span>
+            </template>
+          </el-table-column>
           <el-table-column
-            label="学生姓名"
+            label="竞赛名称"
             align="center"
-            key="studentName"
-            prop="studentName"
+            key="competitionName"
+            prop="competitionName"
             v-if="columns[1].visible"
-          />
-          <el-table-column
-            label="名称"
-            align="center"
-            key="name"
-            prop="name"
-            v-if="columns[2].visible"
             width="160"
           />
           <el-table-column
-            label="类型"
+            label="主办单位"
             align="center"
-            key="type"
-            prop="type"
+            key="hostedBy"
+            prop="hostedBy"
             v-if="columns[3].visible"
+          />
+
+          <el-table-column
+            label="竞赛级别"
+            align="center"
+            key="competitionLevel"
+            prop="competitionLevel"
+            v-if="columns[4].visible"
             :show-overflow-tooltip="false"
           >
             <template #default="scope">
-              <span v-if="scope.row.type === 0">发明专利</span>
-              <span v-else-if="scope.row.type === 10">实用新型专利</span>
-              <span v-else-if="scope.row.type === 20">外观设计专利</span>
-              <span v-else-if="scope.row.type === 30">著作权</span>
+              <span v-if="scope.row.competitionLevel === 10">国家级</span>
+              <span v-else-if="scope.row.competitionLevel === 20">省部级</span>
               <span v-else>未知类型</span>
             </template>
           </el-table-column>
 
           <el-table-column
-            label="授权号"
+            label="获奖情况"
             align="center"
-            key="authorizationNum"
-            prop="authorizationNum"
-            v-if="columns[4].visible"
-          />
-          <el-table-column
-            label="获批时间"
-            align="center"
-            key="timeApproval"
-            prop="timeApproval"
+            key="awards"
+            prop="awards"
             v-if="columns[5].visible"
-            :show-overflow-tooltip="true"
-          >
-            <template #default="scope">
-              <span>{{ parseTime(scope.row.timeApproval) }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column
-            label="第几发明人"
-            align="center"
-            key="whichInventor"
-            prop="whichInventor"
-            v-if="columns[6].visible"
-            :show-overflow-tooltip="true"
           />
           <el-table-column
-            label="指导教师"
+            label="承办单位"
             align="center"
-            key="teacherName"
-            prop="teacherName"
-            v-if="columns[7].visible"
+            key="organizer"
+            prop="organizer"
+            v-if="columns[6].visible"
             :show-overflow-tooltip="true"
           />
 
@@ -383,48 +356,26 @@
       </el-col>
     </el-row>
 
-    <!-- 添加或修改发表教研论文统计配置对话框 -->
+    <!-- 添加或修改承办省级以上学科竞赛及获优秀组织奖情况对话框 -->
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
-      <el-form :model="form" :rules="rules" ref="PatentsRef" label-width="80px">
+      <el-form :model="form" :rules="rules" ref="ExcellentOrganizationRef" label-width="80px">
         <el-row>
           <el-col :span="12">
-            <el-form-item label="学号" prop="studentNum">
-              <el-input
-                v-model="form.studentNum"
-                placeholder="请输入学号"
-                maxlength="30"
-                :disabled="!(form.id == undefined)"
-              />
+            <el-form-item label="竞赛时间" prop="timeCompetition">
+              <el-date-picker
+                v-model="form.timeCompetition"
+                type="date"
+                placeholder="选择竞赛时间（年月）"
+                @change="dateChange"
+              >
+              </el-date-picker>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="学生姓名" prop="studentNum">
-              <el-input
-                v-model="form.studentNum"
-                placeholder="请输入学生姓名"
-                maxlength="30"
-                :disabled="!(form.id == undefined)"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="24">
-            <el-form-item label="名称" prop="name">
-              <el-input
-                v-model="form.name"
-                placeholder="请输入名称"
-                maxlength="20"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="类别" prop="type">
+            <el-form-item label="竞赛级别" prop="competitionLevel">
               <el-select
-                v-model="form.type"
-                placeholder="请选择类别"
+                v-model="form.competitionLevel"
+                placeholder="请选择竞赛级别"
                 filterable
               >
                 <el-option
@@ -437,40 +388,47 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="授权号" prop="authorizationNum">
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="竞赛名称" prop="competitionName">
               <el-input
-                v-model="form.authorizationNum"
-                placeholder="请输入授权号"
-                maxlength="60"
-              ></el-input>
+                v-model="form.competitionName"
+                placeholder="请输入竞赛名称"
+                maxlength="30"
+              />
             </el-form-item>
           </el-col>
         </el-row>
-
         <el-row>
-          <el-col :span="12">
-            <el-form-item label="获批时间" prop="timeApproval">
-              <el-date-picker
-                v-model="form.timeApproval"
-                type="date"
-                placeholder="选择日期"
-                @change="dateChange"
-              >
-              </el-date-picker>
+          <el-col :span="24">
+            <el-form-item label="主办单位" prop="hostedBy">
+              <el-input
+                v-model="form.hostedBy"
+                placeholder="请输入主办单位"
+                maxlength="30"
+              />
             </el-form-item>
           </el-col>
-
-          <el-col :span="12">
-            <el-form-item
-              label="第几发明人"
-              label-width="95"
-              prop="whichInventor"
-            >
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="承办单位" prop="organizer">
               <el-input
-                v-model="form.whichInventor"
-                placeholder="请输入第几发明人"
-                maxlength="10"
+                v-model="form.organizer"
+                placeholder="请输入承办单位"
+                maxlength="30"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="获奖情况" prop="awards">
+              <el-input
+                type="textarea"
+                v-model="form.awards"
+                placeholder="请输入获奖情况"
               />
             </el-form-item>
           </el-col>
@@ -483,6 +441,7 @@
                 v-model="form.teacherName"
                 placeholder="请输入指导教师"
                 maxlength="20"
+                :disabled="!(form.id == undefined)"
               />
             </el-form-item>
           </el-col>
@@ -492,6 +451,7 @@
                 v-model="form.teacherCode"
                 placeholder="请输入教师工号"
                 maxlength="10"
+                :disabled="!(form.id == undefined)"
               />
             </el-form-item>
           </el-col>
@@ -587,13 +547,13 @@
 import { getToken } from "@/utils/auth";
 import { deptTreeSelect } from "@/api/system/user";
 import {
-  listPatents,
-  getPatents,
-  addPatents,
-  updatePatents,
+  listExcellentOrganization,
+  getExcellentOrganization,
+  addExcellentOrganization,
+  updateExcellentOrganization,
   examine,
-  delPatents,
-} from "@/api/performance/patents.js";
+  delExcellentOrganization,
+} from "@/api/performance/excellentOrganization.js";
 import { get } from "@vueuse/core";
 import useUserStore from "@/store/modules/user";
 
@@ -634,9 +594,7 @@ const upload = reactive({
   // 设置上传的请求头部
   headers: { Authorization: getToken() },
   // 上传的地址
-  url:
-    import.meta.env.VITE_APP_BASE_API +
-    "/performance/patents/importData",
+  url: import.meta.env.VITE_APP_BASE_API + "/performance/excellent_organization/importData",
 });
 // 列显隐信息
 const columns = ref([
@@ -662,9 +620,8 @@ const data = reactive({
   queryParams: {
     page: 1,
     size: 10,
-    studentName: undefined,
-    name: undefined,
-    type: undefined,
+    competitionName: undefined,
+    competitionLevel: undefined,
     // userCode: userStore.name,
     annual: undefined,
     status: undefined,
@@ -721,20 +678,12 @@ const data = reactive({
   ],
   typeOptions: [
     {
-      label: "发明专利",
-      value: 0,
-    },
-    {
-      label: "实用新型专利",
+      label: "国家级",
       value: 10,
     },
     {
-      label: "外观设计专利",
+      label: "省部级",
       value: 20,
-    },
-    {
-      label: "著作权",
-      value: 30,
     },
   ],
 });
@@ -759,7 +708,7 @@ function getDeptTree() {
 /** 查询明细列表 */
 function getList() {
   loading.value = true;
-  listPatents(proxy.addDateRange(queryParams.value, dateRange.value)).then(
+  listExcellentOrganization(proxy.addDateRange(queryParams.value, dateRange.value)).then(
     (res) => {
       loading.value = false;
       list.value = res.data;
@@ -791,7 +740,7 @@ function handleDelete(row) {
   proxy.$modal
     .confirm("是否确认删除数据项？")
     .then(function () {
-      return delPatents(workIds);
+      return delExcellentOrganization(workIds);
     })
     .then(() => {
       getList();
@@ -802,11 +751,11 @@ function handleDelete(row) {
 /** 导出按钮操作 */
 function handleExport() {
   proxy.download(
-    "/performance/patents/export",
+    "/performance/excellent_organization/export",
     {
       ...queryParams.value,
     },
-    `本科生专利（著作权）授权情况一览表.xlsx`
+    `承办省级以上学科竞赛及获优秀组织奖情况表.xlsx`
   );
 }
 /** 选择条数  */
@@ -817,15 +766,15 @@ function handleSelectionChange(selection) {
 }
 /** 导入按钮操作 */
 function handleImport() {
-  upload.title = "本科生专利（著作权）授权情况统计导入";
+  upload.title = "承办省级以上学科竞赛及获优秀组织奖情况统计导入";
   upload.open = true;
 }
 /** 下载模板操作 */
 function importTemplate() {
   proxy.download(
-    "/performance/patents/importTemplate",
+    "/performance/excellent_organization/importTemplate",
     {},
-    `本科生专利（著作权）授权情况上传模板.xlsx`
+    `承办省级以上学科竞赛及获优秀组织奖情况上传模板.xlsx`
   );
 }
 /**文件上传中处理 */
@@ -870,7 +819,7 @@ function reset() {
     status: 10,
     annual: undefined,
   };
-  proxy.resetForm("PatentsRef");
+  proxy.resetForm("ExcellentOrganizationRef");
 }
 /** 取消按钮 */
 function cancel() {
@@ -881,20 +830,20 @@ function cancel() {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加本科生专利（著作权）授权情况";
+  title.value = "添加承办省级以上学科竞赛及获优秀组织奖情况";
 }
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
   const id = row.id || ids.value;
-  getPatents(id).then((response) => {
+  getExcellentOrganization(id).then((response) => {
     form.value = response.data;
     postOptions.value = response.posts;
     roleOptions.value = response.roles;
     form.value.postIds = response.postIds;
     form.value.roleIds = response.roleIds;
     open.value = true;
-    title.value = "修改本科生专利（著作权）授权情况";
+    title.value = "修改承办省级以上学科竞赛及获优秀组织奖情况";
     form.password = "";
   });
 }
@@ -932,16 +881,16 @@ function handleReject(row) {
 }
 /** 提交按钮 */
 function submitForm() {
-  proxy.$refs["PatentsRef"].validate((valid) => {
+  proxy.$refs["ExcellentOrganizationRef"].validate((valid) => {
     if (valid) {
       if (form.value.id != undefined) {
-        updatePatents(form.value).then((response) => {
+        updateExcellentOrganization(form.value).then((response) => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
           getList();
         });
       } else {
-        addPatents(form.value).then((response) => {
+        addExcellentOrganization(form.value).then((response) => {
           proxy.$modal.msgSuccess("新增成功");
           open.value = false;
           getList();

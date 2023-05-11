@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 import { parseStrEmpty } from "@/utils/ruoyi";
 
-// 查询用户列表
+// 查询列表
 export function listTeachingWork(query) {
   return request({
     url: '/performance/teachingWork/page',
@@ -57,7 +57,7 @@ export function updateTeachingWork(data) {
   })
 }
 
-//审核
+//提交审核
 export function submit(ids) {
   const data = {
     ids

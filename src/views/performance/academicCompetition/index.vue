@@ -304,6 +304,7 @@
             align="center"
             key="isTeam"
             prop="isTeam"
+            width="90"
             v-if="columns[3].visible"
             :show-overflow-tooltip="false"
           >
@@ -312,14 +313,6 @@
               <span v-else-if="scope.row.isTeam === 1">个人</span>
             </template>
           </el-table-column>
-          <el-table-column
-            label="竞赛名称"
-            align="center"
-            key="competitionName"
-            prop="competitionName"
-            v-if="columns[2].visible"
-            width="160"
-          />
 
           <el-table-column
             label="获奖作品"
@@ -430,32 +423,7 @@
     <!-- 添加或修改发表教研论文统计配置对话框 -->
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
       <el-form :model="form" :rules="rules" ref="PatentsRef" label-width="80px">
-        <div style="padding: 0px 0px 20px">
-          <div v-for="(item, index) in form.students" :key="index">
-            <el-form-item
-              :label="index + 1 + '.学生学号'"
-              :rules="itemRules"
-              :prop="'students.' + index + '.studentNum'"
-            >
-              <el-input v-model="item.studentNum" placeholder="请输入...">
-              </el-input>
-            </el-form-item>
-
-            <el-form-item
-              :label="index + 1 + '.学生姓名'"
-              :rules="itemRules"
-              :prop="'students.' + index + '.studentName'"
-            >
-              <el-input v-model="item.studentName" placeholder="请输入...">
-              </el-input>
-            </el-form-item>
-          </div>
-
-          <el-button @click="continueAdd"
-            ><el-icon><Plus /></el-icon>添加学生</el-button
-          >
-        </div>
-
+       
         <div v-for="(item, index) in form.students" :key="index">
           <!-- 嵌套的el-form   model绑定的是voucherInfo.cash里面的对象 -->
           <!-- 又定义了一个rules :rules="subVoucherRule"-->
@@ -472,7 +440,7 @@
             <el-col :span="10">
               <el-form-item prop="studentName" :label="'学生姓名'">
                 <el-input
-                  v-model="item.studentNum"
+                  v-model="item.studentName"
                   palceholder="请输入学生姓名"
                 >
                 </el-input>
@@ -500,33 +468,11 @@
         </div>
 
         <el-row>
-          <el-col :span="12">
-            <el-form-item label="学号" prop="studentNum">
-              <el-input
-                v-model="form.studentNum"
-                placeholder="请输入学号"
-                maxlength="30"
-                :disabled="!(form.id == undefined)"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="学生姓名" prop="studentNum">
-              <el-input
-                v-model="form.studentNum"
-                placeholder="请输入学生姓名"
-                maxlength="30"
-                :disabled="!(form.id == undefined)"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
           <el-col :span="24">
-            <el-form-item label="名称" prop="name">
+            <el-form-item label="竞赛名称" prop="competitionName">
               <el-input
-                v-model="form.name"
-                placeholder="请输入名称"
+                v-model="form.competitionName"
+                placeholder="请输入竞赛名称"
                 maxlength="20"
               />
             </el-form-item>
@@ -534,10 +480,21 @@
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="类别" prop="type">
+            <el-form-item label="获奖时间" prop="timeAward">
+              <el-date-picker
+                v-model="form.timeAward"
+                type="date"
+                placeholder="获奖时间（年月）"
+                @change="dateChange"
+              >
+              </el-date-picker>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="获奖类别" prop="awardType">
               <el-select
-                v-model="form.type"
-                placeholder="请选择类别"
+                v-model="form.awardType"
+                placeholder="请选择获奖类别"
                 filterable
               >
                 <el-option
@@ -550,40 +507,54 @@
               </el-select>
             </el-form-item>
           </el-col>
+        </el-row>
+
+        <el-row>
           <el-col :span="12">
-            <el-form-item label="授权号" prop="authorizationNum">
-              <el-input
-                v-model="form.authorizationNum"
-                placeholder="请输入授权号"
-                maxlength="60"
-              ></el-input>
+            <el-form-item label="获奖等级" prop="awardLevel">
+              <el-select
+                v-model="form.awardLevel"
+                placeholder="请选择获奖等级"
+                filterable
+              >
+                <el-option
+                  v-for="(item, index) in awardLevelOptions"
+                  :key="index"
+                  :label="item.label"
+                  :value="item.value"
+                  :disabled="item.disabled"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="12">
+            <el-form-item label="团队或个人" prop="isTeam" label-width="90">
+              <el-select
+                v-model="form.isTeam"
+                placeholder="请选择团队或个人"
+                filterable
+              >
+                <el-option
+                  v-for="(item, index) in teamOptions"
+                  :key="index"
+                  :label="item.label"
+                  :value="item.value"
+                  :disabled="item.disabled"
+                ></el-option>
+              </el-select>
             </el-form-item>
           </el-col>
         </el-row>
 
         <el-row>
-          <el-col :span="12">
-            <el-form-item label="获批时间" prop="timeApproval">
-              <el-date-picker
-                v-model="form.timeApproval"
-                type="date"
-                placeholder="选择日期"
-                @change="dateChange"
-              >
-              </el-date-picker>
-            </el-form-item>
-          </el-col>
-
-          <el-col :span="12">
-            <el-form-item
-              label="第几发明人"
-              label-width="95"
-              prop="whichInventor"
-            >
+          <el-col :span="24">
+            <el-form-item label="获奖作品" prop="awardWinningWork">
               <el-input
-                v-model="form.whichInventor"
-                placeholder="请输入第几发明人"
-                maxlength="10"
+                v-model="form.awardWinningWork"
+                type="textarea"
+                placeholder="请输入获奖作品"
+                maxlength="30"
               />
             </el-form-item>
           </el-col>
@@ -596,6 +567,7 @@
                 v-model="form.teacherName"
                 placeholder="请输入指导教师"
                 maxlength="20"
+                :disabled="!(form.id == undefined)"
               />
             </el-form-item>
           </el-col>
@@ -605,6 +577,7 @@
                 v-model="form.teacherCode"
                 placeholder="请输入教师工号"
                 maxlength="10"
+                :disabled="!(form.id == undefined)"
               />
             </el-form-item>
           </el-col>
@@ -854,6 +827,16 @@ const data = reactive({
       value: 30,
     },
   ],
+  teamOptions: [
+    {
+      label: "团队",
+      value: 0,
+    },
+    {
+      label: "个人",
+      value: 1,
+    },
+  ],
 });
 
 const {
@@ -862,6 +845,7 @@ const {
   rules,
   statusOptions,
   typeOptions,
+  teamOptions,
   awardLevelOptions,
 } = toRefs(data);
 
