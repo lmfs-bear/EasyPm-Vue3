@@ -1,6 +1,6 @@
 <template>
   <div class="app-container home">
-    <el-row :gutter="20">
+    <!-- <el-row :gutter="20">
       <el-col :sm="24" :lg="24">
         <blockquote class="text-warning" style="font-size: 14px">
           领取阿里云通用云产品1888优惠券
@@ -36,7 +36,7 @@
 
         <hr />
       </el-col>
-    </el-row>
+    </el-row> -->
     <el-row :gutter="20">
       <el-col :sm="24" :lg="12" style="padding-left: 20px">
         <h2>后台管理框架</h2>
@@ -49,7 +49,7 @@
         <p>
           <el-tag type="danger">&yen;免费开源</el-tag>
         </p>
-        <p>
+        <!-- <p>
           <el-button
             type="primary"
             icon="Cloudy"
@@ -63,7 +63,7 @@
             @click="goTarget('http://ruoyi.vip')"
             >访问主页</el-button
           >
-        </p>
+        </p> -->
       </el-col>
 
       <el-col :sm="24" :lg="12" style="padding-left: 50px">
@@ -109,7 +109,7 @@
               <span>联系信息</span>
             </div>
           </template>
-          <div class="body">
+          <!-- <div class="body">
             <p>
               <i class="el-icon-s-promotion"></i> 官网：<el-link
                 href="http://www.ruoyi.vip"
@@ -125,7 +125,7 @@
                 108482800</a
               >
             </p>
-          </div>
+          </div> -->
         </el-card>
       </el-col>
       <el-col :xs="24" :sm="24" :md="12" :lg="8">
