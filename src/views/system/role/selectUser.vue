@@ -2,18 +2,18 @@
    <!-- 授权用户 -->
    <el-dialog title="选择用户" v-model="visible" width="800px" top="5vh" append-to-body>
       <el-form :model="queryParams" ref="queryRef" :inline="true">
-         <el-form-item label="用户名称" prop="userName">
+         <el-form-item label="用户名称" prop="name">
             <el-input
-               v-model="queryParams.userName"
+               v-model="queryParams.name"
                placeholder="请输入用户名称"
                clearable
                style="width: 200px"
                @keyup.enter="handleQuery"
             />
          </el-form-item>
-         <el-form-item label="手机号码" prop="phonenumber">
+         <el-form-item label="手机号码" prop="phone">
             <el-input
-               v-model="queryParams.phonenumber"
+               v-model="queryParams.phone"
                placeholder="请输入手机号码"
                clearable
                style="width: 200px"
@@ -28,10 +28,10 @@
       <el-row>
          <el-table @row-click="clickRow" ref="refTable" :data="userList" @selection-change="handleSelectionChange" height="260px">
             <el-table-column type="selection" width="55"></el-table-column>
-            <el-table-column label="用户名称" prop="userName" :show-overflow-tooltip="true" />
-            <el-table-column label="用户昵称" prop="nickName" :show-overflow-tooltip="true" />
+            <el-table-column label="用户姓名" prop="name" :show-overflow-tooltip="true" />
+            <el-table-column label="用户工号" prop="userName" :show-overflow-tooltip="true" />
             <el-table-column label="邮箱" prop="email" :show-overflow-tooltip="true" />
-            <el-table-column label="手机" prop="phonenumber" :show-overflow-tooltip="true" />
+            <el-table-column label="手机" prop="phone" :show-overflow-tooltip="true" />
             <el-table-column label="状态" align="center" prop="status">
                <template #default="scope">
                   <dict-tag :options="sys_normal_disable" :value="scope.row.status" />
@@ -46,8 +46,8 @@
          <pagination
             v-show="total > 0"
             :total="total"
-            v-model:page="queryParams.pageNum"
-            v-model:limit="queryParams.pageSize"
+            v-model:page="queryParams.page"
+            v-model:limit="queryParams.size"
             @pagination="getList"
          />
       </el-row>
@@ -78,11 +78,11 @@ const total = ref(0);
 const userIds = ref([]);
 
 const queryParams = reactive({
-  pageNum: 1,
-  pageSize: 10,
+  page: 1,
+  size: 10,
   roleId: undefined,
   userName: undefined,
-  phonenumber: undefined
+  phone: undefined
 });
 
 // 显示弹框
@@ -97,18 +97,18 @@ function clickRow(row) {
 }
 // 多选框选中数据
 function handleSelectionChange(selection) {
-  userIds.value = selection.map(item => item.userId);
+  userIds.value = selection.map(item => item.id);
 }
 // 查询表数据
 function getList() {
   unallocatedUserList(queryParams).then(res => {
-    userList.value = res.rows;
+    userList.value = res.data;
     total.value = res.total;
   });
 }
 /** 搜索按钮操作 */
 function handleQuery() {
-  queryParams.pageNum = 1;
+  queryParams.page = 1;
   getList();
 }
 /** 重置按钮操作 */
@@ -126,8 +126,8 @@ function handleSelectUser() {
     return;
   }
   authUserSelectAll({ roleId: roleId, userIds: uIds }).then(res => {
-    proxy.$modal.msgSuccess(res.msg);
-    if (res.code === 200) {
+    proxy.$modal.msgSuccess("操作成功");
+    if (res.code === 0) {
       visible.value = false;
       emit("ok");
     }

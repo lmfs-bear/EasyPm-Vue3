@@ -557,7 +557,7 @@
   </div>
 </template>
 
-<script setup name="User">
+<script setup name="Workload">
 import { getToken } from "@/utils/auth";
 import {
   changeUserStatus,

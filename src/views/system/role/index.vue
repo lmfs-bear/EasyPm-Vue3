@@ -191,7 +191,7 @@
           <el-tooltip
             content="分配用户"
             placement="top"
-            v-if="scope.row.roleId !== 1"
+            v-if="scope.row.roleKey !== 'admin'"
           >
             <el-button
               link
@@ -317,7 +317,7 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="数据权限" v-show="form.dataScope == 2">
+        <el-form-item label="数据权限" v-show="form.dataScope == 20">
           <el-checkbox
             v-model="deptExpand"
             @change="handleCheckedTreeExpand($event, 'dept')"
@@ -399,11 +399,10 @@ const deptRef = ref(null);
 
 /** 数据范围选项*/
 const dataScopeOptions = ref([
-  { value: "1", label: "全部数据权限" },
-  { value: "2", label: "自定数据权限" },
-  { value: "3", label: "本部门数据权限" },
-  { value: "4", label: "本部门及以下数据权限" },
-  { value: "5", label: "仅本人数据权限" },
+  { value: 10, label: "全部数据权限" },
+  { value: 20, label: "自定数据权限" },
+  { value: 30, label: "本部门及以下数据权限" },
+  { value: 40, label: "仅本人数据权限" },
 ]);
 
 const data = reactive({
@@ -477,7 +476,7 @@ function handleExport() {
 }
 /** 多选框选中数据 */
 function handleSelectionChange(selection) {
-  ids.value = selection.map((item) => item.roleId);
+  ids.value = selection.map((item) => item.id);
   roleNames.value = selection.map((item) => item.roleName);
   single.value = selection.length != 1;
   multiple.value = !selection.length;
@@ -488,7 +487,7 @@ function handleStatusChange(row) {
   proxy.$modal
     .confirm('确认要"' + text + '""' + row.roleName + '"角色吗?')
     .then(function () {
-      return changeRoleStatus(row.roleId, row.status);
+      return changeRoleStatus(row.id, row.status);
     })
     .then(() => {
       proxy.$modal.msgSuccess(text + "成功");
@@ -512,7 +511,7 @@ function handleCommand(command, row) {
 }
 /** 分配用户 */
 function handleAuthUser(row) {
-  router.push("/system/role-auth/user/" + row.roleId);
+  router.push("/system/role-auth/user/" + row.id);
 }
 /** 查询菜单树结构 */
 function getMenuTreeselect() {
@@ -591,7 +590,7 @@ function getRoleMenuTreeselect(roleId) {
 /** 根据角色ID查询部门树结构 */
 function getDeptTree(roleId) {
   return deptTreeSelect(roleId).then((response) => {
-    deptOptions.value = response.depts;
+    deptOptions.value = response.data.depts;
     return response;
   });
 }
@@ -670,15 +669,15 @@ function dataScopeSelectChange(value) {
 /** 分配数据权限操作 */
 function handleDataScope(row) {
   reset();
-  const deptTreeSelect = getDeptTree(row.roleId);
-  getRole(row.roleId).then((response) => {
+  const deptTreeSelect = getDeptTree(row.id);
+  getRole(row.id).then((response) => {
     form.value = response.data;
     openDataScope.value = true;
     nextTick(() => {
       deptTreeSelect.then((res) => {
         nextTick(() => {
           if (deptRef.value) {
-            deptRef.value.setCheckedKeys(res.checkedKeys);
+            deptRef.value.setCheckedKeys(res.data.checkedKeys);
           }
         });
       });
@@ -688,7 +687,7 @@ function handleDataScope(row) {
 }
 /** 提交按钮（数据权限） */
 function submitDataScope() {
-  if (form.value.roleId != undefined) {
+  if (form.value.id != undefined) {
     form.value.deptIds = getDeptAllCheckedKeys();
     dataScope(form.value).then((response) => {
       proxy.$modal.msgSuccess("修改成功");

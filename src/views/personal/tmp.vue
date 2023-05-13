@@ -179,18 +179,21 @@
         </el-card>
       </el-col>
     </el-row>
-    <el-row :gutter="20">
-      <el-col :xs="24" :sm="24" :md="12" :lg="8">
-        <el-card class="update-log">
-          <template v-slot:header>
-            <div class="clearfix">
-              <span>联系信息</span>
-            </div>
-          </template>
-        </el-card>
-      </el-col>
-    </el-row>
   </div>
+
+  <el-row :gutter="20">
+    <el-col :xs="24" :sm="24" :md="12" :lg="8">
+      <el-card class="update-log">
+        <template v-slot:header>
+          <div class="clearfix">
+            <span>联系信息</span>
+          </div>
+        </template>
+      </el-card>
+    </el-col>
+  </el-row>
+
+  <!-- <div ref="chart" style="width: 500px; height: 300px; margin: auto"></div> -->
 </template>
 
 <script setup name="User">
