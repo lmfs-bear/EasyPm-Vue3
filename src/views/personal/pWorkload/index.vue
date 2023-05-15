@@ -109,7 +109,7 @@
               plain
               icon="Plus"
               @click="handleAdd"
-              v-hasPermi="['system:user:add']"
+              v-hasPermi="['pm:pWorkload:add']"
               >新增</el-button
             >
           </el-col>
@@ -120,7 +120,7 @@
               icon="Edit"
               :disabled="single"
               @click="handleUpdate"
-              v-hasPermi="['system:user:edit']"
+              v-hasPermi="['pm:pWorkload:edit']"
               >修改</el-button
             >
           </el-col>
@@ -131,7 +131,7 @@
               icon="Delete"
               :disabled="multiple"
               @click="handleDelete"
-              v-hasPermi="['pm:workload:remove']"
+              v-hasPermi="['pm:pWorkload:remove']"
               >删除</el-button
             >
           </el-col>
@@ -142,7 +142,7 @@
               icon="document-add"
               :disabled="multiple"
               @click="handleExamine"
-              v-hasPermi="['pm:workload:submit']"
+              v-hasPermi="['pm:pWorkload:submit']"
               >提交审核</el-button
             >
           </el-col>
@@ -152,7 +152,7 @@
               plain
               icon="Upload"
               @click="handleImport"
-              v-hasPermi="['pm:workload:import']"
+              v-hasPermi="['pm:pWorkload:import']"
               >导入</el-button
             >
           </el-col>
@@ -162,7 +162,7 @@
               plain
               icon="Download"
               @click="handleExport"
-              v-hasPermi="['system:user:export']"
+              v-hasPermi="['pm:pWorkload:export']"
               >导出</el-button
             >
           </el-col>
@@ -204,7 +204,7 @@
             :show-overflow-tooltip="false"
           >
             <template #default="scope">
-              <span v-if="scope.row.type === 10">通识必修</span>
+              <span v-if="scope.row.type === 10">本科课程</span>
               <span v-else-if="scope.row.type === 20">专业必修</span>
               <span v-else-if="scope.row.type === 30">专业选修</span>
               <span v-else-if="scope.row.type === 40">实践必修</span>
@@ -301,7 +301,7 @@
                   type="primary"
                   icon="Edit"
                   @click="handleUpdate(scope.row)"
-                  v-hasPermi="['pm:workload:edit']"
+                  v-hasPermi="['pm:pWorkload:edit']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip content="提交审核" placement="top">
@@ -310,7 +310,7 @@
                   type="primary"
                   icon="document-checked"
                   @click="handleExamine(scope.row)"
-                  v-hasPermi="['pm:workload:submit']"
+                  v-hasPermi="['pm:pWorkload:submit']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip
@@ -323,7 +323,7 @@
                   type="primary"
                   icon="Delete"
                   @click="handleDelete(scope.row)"
-                  v-hasPermi="['system:user:remove']"
+                  v-hasPermi="['pm:pWorkload:remove']"
                 ></el-button>
               </el-tooltip>
             </template>
@@ -352,7 +352,7 @@
             <el-form-item label="教师姓名" prop="teacherName">
               <el-input
                 v-model="form.teacherName"
-                placeholder="请输入用户昵称"
+                placeholder="请输入用户姓名"
                 maxlength="30"
                 :disabled=true
               />
@@ -439,7 +439,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="状态">
-              <el-select v-model="form.status" placeholder="请选择">
+              <el-select v-model="form.status" placeholder="请选择" :disabled=true>
                 <el-option
                   v-for="(item, index) in statusOptions"
                   :key="index"
@@ -622,7 +622,7 @@ const data = reactive({
     page: 1,
     size: 10,
     // userName: undefined,
-    teacherId: userStore.userId,
+    teacherCode: userStore.userName,
     schoolYear: undefined,
     status: undefined,
   },
@@ -647,13 +647,13 @@ const data = reactive({
         trigger: "change",
       },
     ],
-    status: [
-      {
-        required: true,
-        message: "请选择状态",
-        trigger: "change",
-      },
-    ],
+    // status: [
+    //   {
+    //     required: true,
+    //     message: "请选择状态",
+    //     trigger: "change",
+    //   },
+    // ],
   },
   statusOptions: [
     {
@@ -679,7 +679,7 @@ const data = reactive({
   ],
   typeOptions: [
     {
-      label: "通识必修",
+      label: "本科课程",
       value: 10,
     },
     {
@@ -787,7 +787,7 @@ function resetQuery() {
   dateRange.value = [];
   proxy.resetForm("queryRef");
   queryParams.value.deptId = undefined;
-  proxy.$refs.deptTreeRef.setCurrentKey(null);
+  // proxy.$refs.deptTreeRef.setCurrentKey(null);
   handleQuery();
 }
 /** 删除按钮操作 */
@@ -894,7 +894,7 @@ function submitFileForm() {
 function reset() {
   form.value = {
     id: undefined,
-    teacherId: undefined,
+    teacherCode: userStore.userName,
     teacherName: userStore.name,
     courseName: undefined,
     type: undefined,
@@ -904,7 +904,7 @@ function reset() {
     netWorkload: undefined,
     workload: undefined,
     schoolYear: undefined,
-    status: 0,
+    status: 10,
     remark: undefined,
   };
   proxy.resetForm("teachingWorkRef");
@@ -972,7 +972,5 @@ function submitForm() {
   });
 }
 
-// getDeptTree();
-// getList();
 getWorkList();
 </script>

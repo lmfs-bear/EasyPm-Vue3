@@ -379,6 +379,7 @@ const { sys_normal_disable } = proxy.useDict("sys_normal_disable");
 const roleList = ref([]);
 const open = ref(false);
 const loading = ref(true);
+const editLoading = ref(false);
 const showSearch = ref(true);
 const ids = ref([]);
 const roleNames = ref([]);

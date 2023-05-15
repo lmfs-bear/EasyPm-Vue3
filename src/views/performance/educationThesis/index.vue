@@ -279,7 +279,7 @@
             :show-overflow-tooltip="true"
           >
             <template #default="scope">
-              <span>{{ parseTime(scope.row.timePublish) }}</span>
+              <span>{{ parseTime(scope.row.timePublish, "{y}-{m}") }}</span>
             </template>
           </el-table-column>
           <el-table-column
@@ -434,7 +434,7 @@
         ref="EducationThesisRef"
         label-width="80px"
       >
-        <el-row>
+        <!-- <el-row>
           <el-col :span="12">
             <el-form-item label="作者姓名" prop="authorName">
               <el-input
@@ -455,7 +455,53 @@
               />
             </el-form-item>
           </el-col>
+        </el-row> -->
+
+        <el-row>
+          <el-col :span="12">
+            <el-form-item
+              label="作者姓名"
+              prop="authorName"
+              :disabled="!(form.id == undefined)"
+            >
+              <el-select
+                v-model="form.authorName"
+                @change="selectChangeParent"
+                placeholder="请选择作者工号:姓名"
+                filterable
+              >
+                <el-option
+                  v-for="(user, index) in userSelect"
+                  :key="index"
+                  :label="`${user.userName}:${user.name}`"
+                  :value="index"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item
+              label="作者工号"
+              prop="authorCode"
+              :disabled="!(form.id == undefined)"
+            >
+              <el-select
+                v-model="form.authorCode"
+                @change="selectChangeParent"
+                placeholder="请选择作者工号"
+                filterable
+              >
+                <el-option
+                  v-for="(user, index) in userSelect"
+                  :key="index"
+                  :label="`${user.userName}`"
+                  :value="index"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
         </el-row>
+
         <el-row>
           <el-col :span="12">
             <el-form-item label="作者类型" prop="authorType">
@@ -619,7 +665,7 @@
         :limit="1"
         accept=".xlsx, .xls"
         :headers="upload.headers"
-        :action="upload.url + '?updateSupport=' + upload.updateSupport"
+        :action="upload.url + '?annual=' + upload.annual"
         :disabled="upload.isUploading"
         :on-progress="handleFileUploadProgress"
         :on-success="handleFileSuccess"
@@ -631,14 +677,31 @@
         <template #tip>
           <div class="el-upload__tip text-center">
             <div class="el-upload__tip">
-              <el-checkbox
+              <!-- <el-checkbox
                 v-model="upload.updateSupport"
-              />是否更新已经存在的数据
+              />是否更新已经存在的数据 -->
+              <span>所属年度：</span>
+              <el-select
+                v-model="upload.annual"
+                placeholder="默认为当前年度"
+                clearable
+                style="width: 160px"
+              >
+                <el-option
+                  v-for="dict in pm_year"
+                  :key="dict.value"
+                  :label="dict.label"
+                  :value="dict.value"
+                />
+              </el-select>
+            </div>
+            <div>
+              <br />
             </div>
             <span>仅允许导入xls、xlsx格式文件。</span>
-            <div>
-              <span> 请指定sheet名称以标识学年 示例：2022-2023</span>
-            </div>
+            <!-- <div>
+              <span> 请指定sheet名称以标识年度 示例：2022-2023</span>
+            </div> -->
             <el-link
               type="primary"
               :underline="false"
@@ -676,6 +739,7 @@ import useUserStore from "@/store/modules/user";
 const userStore = useUserStore();
 const router = useRouter();
 const { proxy } = getCurrentInstance();
+const userSelect = proxy.useUsers();
 const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
   "sys_normal_disable",
   "sys_user_sex",
@@ -705,8 +769,8 @@ const upload = reactive({
   title: "",
   // 是否禁用上传
   isUploading: false,
-  // 是否更新已经存在的用户数据
-  updateSupport: 0,
+  // 年度
+  annual: 0,
   // 设置上传的请求头部
   headers: { Authorization: getToken() },
   // 上传的地址
@@ -718,16 +782,16 @@ const upload = reactive({
 const columns = ref([
   { key: 0, label: `姓名`, visible: true },
   { key: 1, label: `工号`, visible: true },
-  { key: 2, label: `主编`, visible: true },
-  { key: 3, label: `教材名称`, visible: true },
-  { key: 4, label: `ISBN`, visible: true },
-  { key: 5, label: `教材形式`, visible: true },
-  { key: 6, label: `适用层次`, visible: true },
-  { key: 7, label: `出版社`, visible: true },
-  { key: 8, label: `是否学习立项教材`, visible: true },
-  { key: 9, label: `获奖情况`, visible: true },
-  { key: 10, label: `获奖时间`, visible: true },
-  { key: 11, label: `修订情况`, visible: true },
+  { key: 2, label: `作者类型`, visible: true },
+  { key: 3, label: `论文名称`, visible: true },
+  { key: 4, label: `期刊名称`, visible: true },
+  { key: 5, label: `刊号`, visible: true },
+  { key: 6, label: `期刊收录情况`, visible: true },
+  { key: 7, label: `发表时间`, visible: true },
+  { key: 8, label: `他引次数`, visible: true },
+  { key: 9, label: `是否联合行业发表`, visible: true },
+  { key: 10, label: `是否联合国际发表`, visible: true },
+  { key: 11, label: `是否是跨学科论文`, visible: true },
   { key: 12, label: `所属年度`, visible: true },
   { key: 13, label: `状态`, visible: true },
   { key: 14, label: `创建时间`, visible: true },
@@ -911,6 +975,7 @@ function handleSelectionChange(selection) {
 /** 导入按钮操作 */
 function handleImport() {
   upload.title = "发表教研论文统计导入";
+  upload.annual = pm_year.value[0].value;
   upload.open = true;
 }
 /** 下载模板操作 */
@@ -1043,7 +1108,10 @@ function submitForm() {
     }
   });
 }
-
+function selectChangeParent(index) {
+  form.value.authorCode = userSelect.value[index].userName;
+  form.value.authorName = userSelect.value[index].name;
+}
 getDeptTree();
 getList();
 </script>

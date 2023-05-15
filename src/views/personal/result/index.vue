@@ -37,7 +37,7 @@
         <hr />
       </el-col>
     </el-row> -->
-    <el-row :gutter="20">
+    <!-- <el-row :gutter="20">
       <el-col :sm="24" :lg="12" style="padding-left: 20px">
         <h2>后台管理框架</h2>
         <p>
@@ -48,8 +48,8 @@
         </p>
         <p>
           <el-tag type="danger">&yen;免费开源</el-tag>
-        </p>
-        <!-- <p>
+        </p> -->
+    <!-- <p>
           <el-button
             type="primary"
             icon="Cloudy"
@@ -64,9 +64,9 @@
             >访问主页</el-button
           >
         </p> -->
-      </el-col>
+    <!-- </el-col> -->
 
-      <el-col :sm="24" :lg="12" style="padding-left: 50px">
+    <!-- <el-col :sm="24" :lg="12" style="padding-left: 50px">
         <el-row>
           <el-col :span="12">
             <h2>技术选型</h2>
@@ -99,22 +99,9 @@
           </el-col>
         </el-row>
       </el-col>
-    </el-row>
-    <el-divider />
+    </el-row> -->
+    <!-- <el-divider /> -->
     <el-row :gutter="20">
-      <el-col :xs="24" :sm="24" :md="12" :lg="16">
-        <el-card class="update-log">
-          <template v-slot:header>
-            <div class="clearfix">
-              <span>工作量分布图</span>
-            </div>
-          </template>
-          <div
-            ref="chart"
-            style="width: 100%; height: 480px; margin: auto"
-          ></div>
-        </el-card>
-      </el-col>
       <el-col :xs="24" :sm="24" :md="12" :lg="8">
         <el-card class="update-log">
           <template v-slot:header>
@@ -159,6 +146,21 @@
           </el-collapse>
         </el-card>
       </el-col>
+
+      <el-col :xs="24" :sm="24" :md="12" :lg="16">
+        <el-card class="update-log">
+          <template v-slot:header>
+            <div class="clearfix">
+              <span>工作量分布图</span>
+            </div>
+          </template>
+          <div
+            ref="chart"
+            style="width: 100%; height: 480px; margin: auto"
+          ></div>
+        </el-card>
+      </el-col>
+
       <el-col :xs="24" :sm="24" :md="12" :lg="8">
         <el-card class="update-log">
           <template v-slot:header>

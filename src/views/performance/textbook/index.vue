@@ -278,11 +278,22 @@
             :show-overflow-tooltip="true"
           />
           <el-table-column
+            label="出版年月"
+            align="center"
+            prop="timePublish"
+            v-if="columns[8].visible"
+            width="80"
+          >
+            <template #default="scope">
+              <span>{{ parseTime(scope.row.timePublish, "{y}-{m}") }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column
             label="是否学校立项教材"
             align="center"
             key="isSchoolProject"
             prop="isSchoolProject"
-            v-if="columns[8].visible"
+            v-if="columns[9].visible"
             :show-overflow-tooltip="true"
           >
             <template #default="scope">
@@ -295,23 +306,29 @@
             align="center"
             key="awards"
             prop="awards"
-            v-if="columns[9].visible"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
-            label="获奖时间"
-            align="center"
-            key="timeBeRewarded"
-            prop="timeBeRewarded"
             v-if="columns[10].visible"
             :show-overflow-tooltip="true"
           />
+
+          <el-table-column
+            label="获奖时间"
+            align="center"
+            prop="timeBeRewarded"
+            v-if="columns[11].visible"
+            width="80"
+          >
+            <template #default="scope">
+              <span>{{
+                parseTime(scope.row.timeBeRewarded, "{y}-{m}-{d}")
+              }}</span>
+            </template>
+          </el-table-column>
           <el-table-column
             label="修订情况"
             align="center"
             key="revision"
             prop="revision"
-            v-if="columns[11].visible"
+            v-if="columns[12].visible"
             :show-overflow-tooltip="true"
           />
           <el-table-column
@@ -319,7 +336,7 @@
             align="center"
             key="annual"
             prop="annual"
-            v-if="columns[12].visible"
+            v-if="columns[13].visible"
             :show-overflow-tooltip="true"
           />
           <el-table-column
@@ -327,7 +344,7 @@
             align="center"
             key="status"
             prop="status"
-            v-if="columns[13].visible"
+            v-if="columns[14].visible"
             width="100"
           >
             <template #default="scope">
@@ -344,7 +361,7 @@
             label="创建时间"
             align="center"
             prop="timeCreate"
-            v-if="columns[14].visible"
+            v-if="columns[15].visible"
             width="160"
           >
             <template #default="scope">
@@ -569,18 +586,20 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="出版年月" prop="timePublish">
-              <el-input
+              <el-date-picker
                 v-model="form.timePublish"
-                placeholder="请输入出版年月"
-                maxlength="11"
-              />
+                type="date"
+                placeholder="选择出版年月"
+                @change="dateChange"
+              >
+              </el-date-picker>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="所属学年" prop="annual">
-              <el-select v-model="form.annual" placeholder="请选择学年">
+            <el-form-item label="所属年度" prop="annual">
+              <el-select v-model="form.annual" placeholder="请选择年度">
                 <el-option
                   v-for="dict in pm_year"
                   :key="dict.value"
@@ -679,7 +698,7 @@
         :limit="1"
         accept=".xlsx, .xls"
         :headers="upload.headers"
-        :action="upload.url + '?updateSupport=' + upload.updateSupport"
+        :action="upload.url + '?annual=' + upload.annual"
         :disabled="upload.isUploading"
         :on-progress="handleFileUploadProgress"
         :on-success="handleFileSuccess"
@@ -691,14 +710,31 @@
         <template #tip>
           <div class="el-upload__tip text-center">
             <div class="el-upload__tip">
-              <el-checkbox
+              <!-- <el-checkbox
                 v-model="upload.updateSupport"
-              />是否更新已经存在的数据
+              />是否更新已经存在的数据 -->
+              <span>所属年度：</span>
+              <el-select
+                v-model="upload.annual"
+                placeholder="默认为当前年度"
+                clearable
+                style="width: 160px"
+              >
+                <el-option
+                  v-for="dict in pm_year"
+                  :key="dict.value"
+                  :label="dict.label"
+                  :value="dict.value"
+                />
+              </el-select>
+            </div>
+            <div>
+              <br />
             </div>
             <span>仅允许导入xls、xlsx格式文件。</span>
-            <div>
-              <span> 请指定sheet名称以标识学年 示例：2022-2023</span>
-            </div>
+            <!-- <div>
+              <span> 请指定sheet名称以标识年度 示例：2022-2023</span>
+            </div> -->
             <el-link
               type="primary"
               :underline="false"
@@ -767,8 +803,8 @@ const upload = reactive({
   title: "",
   // 是否禁用上传
   isUploading: false,
-  // 是否更新已经存在的用户数据
-  updateSupport: 0,
+  // 年度
+  annual: 0,
   // 设置上传的请求头部
   headers: { Authorization: getToken() },
   // 上传的地址
@@ -784,13 +820,14 @@ const columns = ref([
   { key: 5, label: `教材形式`, visible: true },
   { key: 6, label: `适用层次`, visible: true },
   { key: 7, label: `出版社`, visible: true },
-  { key: 8, label: `是否学习立项教材`, visible: true },
-  { key: 9, label: `获奖情况`, visible: true },
-  { key: 10, label: `获奖时间`, visible: true },
-  { key: 11, label: `修订情况`, visible: true },
-  { key: 12, label: `所属年度`, visible: true },
-  { key: 13, label: `状态`, visible: true },
-  { key: 14, label: `创建时间`, visible: true },
+  { key: 8, label: `出版年月`, visible: true },
+  { key: 9, label: `是否学习立项教材`, visible: true },
+  { key: 10, label: `获奖情况`, visible: true },
+  { key: 11, label: `获奖时间`, visible: true },
+  { key: 12, label: `修订情况`, visible: true },
+  { key: 13, label: `所属年度`, visible: true },
+  { key: 14, label: `状态`, visible: true },
+  { key: 15, label: `创建时间`, visible: true },
 ]);
 
 const data = reactive({
@@ -836,7 +873,7 @@ const data = reactive({
     annual: [
       {
         required: true,
-        message: "请选择学年",
+        message: "请选择年度",
         trigger: "change",
       },
     ],
@@ -975,6 +1012,7 @@ function handleSelectionChange(selection) {
 /** 导入按钮操作 */
 function handleImport() {
   upload.title = "教材出版统计导入";
+  upload.annual = pm_year.value[0].value;
   upload.open = true;
 }
 /** 下载模板操作 */

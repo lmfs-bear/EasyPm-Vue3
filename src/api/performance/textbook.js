@@ -25,6 +25,11 @@ export function addTextbook(data) {
     start.setHours(0);
     data.timeBeRewarded = parseInt(start.getTime().toString());
   }
+  if (data.timePublish !== undefined) {
+    const start = new Date(data.timePublish);
+    start.setHours(0);
+    data.timePublish = parseInt(start.getTime().toString());
+  }
   return request({
     url: '/performance/textbook',
     method: 'post',
@@ -55,6 +60,16 @@ export function examine(ids, status) {
 
 // 修改教材出版
 export function updateTextbook(data) {
+  if (data.timeBeRewarded !== undefined) {
+    const start = new Date(data.timeBeRewarded);
+    start.setHours(0);
+    data.timeBeRewarded = parseInt(start.getTime().toString());
+  }
+  if (data.timePublish !== undefined) {
+    const start = new Date(data.timePublish);
+    start.setHours(0);
+    data.timePublish = parseInt(start.getTime().toString());
+  }
   return request({
     url: '/performance/textbook',
     method: 'put',

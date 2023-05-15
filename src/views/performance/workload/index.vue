@@ -2,7 +2,7 @@
   <div class="app-container">
     <el-row :gutter="20">
       <!--部门数据-->
-      <el-col :span="4" :xs="24">
+      <el-col :span="4" :xs="24" >
         <div class="head-container">
           <el-input
             v-model="deptName"
@@ -109,7 +109,7 @@
               plain
               icon="Plus"
               @click="handleAdd"
-              v-hasPermi="['system:user:add']"
+              v-hasPermi="['pm:workload:add']"
               >新增</el-button
             >
           </el-col>
@@ -120,7 +120,7 @@
               icon="Edit"
               :disabled="single"
               @click="handleUpdate"
-              v-hasPermi="['system:user:edit']"
+              v-hasPermi="['pm:workload:edit']"
               >修改</el-button
             >
           </el-col>
@@ -131,7 +131,7 @@
               icon="Delete"
               :disabled="multiple"
               @click="handleDelete"
-              v-hasPermi="['system:user:remove']"
+              v-hasPermi="['pm:workload:remove']"
               >删除</el-button
             >
           </el-col>
@@ -173,7 +173,7 @@
               plain
               icon="Download"
               @click="handleExport"
-              v-hasPermi="['system:user:export']"
+              v-hasPermi="['pm:workload:export']"
               >导出</el-button
             >
           </el-col>
@@ -215,7 +215,7 @@
             :show-overflow-tooltip="false"
           >
             <template #default="scope">
-              <span v-if="scope.row.type === 10">通识必修</span>
+              <span v-if="scope.row.type === 10">本科课程</span>
               <span v-else-if="scope.row.type === 20">专业必修</span>
               <span v-else-if="scope.row.type === 30">专业选修</span>
               <span v-else-if="scope.row.type === 40">实践必修</span>
@@ -289,10 +289,26 @@
             </template>
           </el-table-column>
           <el-table-column
+            label="所属学年"
+            align="center"
+            key="schoolYear"
+            prop="schoolYear"
+            v-if="columns[9].visible"
+            :show-overflow-tooltip="false"
+          >
+            <template #default="scope">
+              <span
+                >{{ scope.row.schoolYear }}-{{
+                  parseInt(scope.row.schoolYear) + 1
+                }}</span
+              >
+            </template>
+          </el-table-column>
+          <el-table-column
             label="创建时间"
             align="center"
             prop="timeCreate"
-            v-if="columns[9].visible"
+            v-if="columns[10].visible"
             width="160"
           >
             <template #default="scope">
@@ -343,7 +359,7 @@
                   type="primary"
                   icon="Delete"
                   @click="handleDelete(scope.row)"
-                  v-hasPermi="['system:user:remove']"
+                  v-hasPermi="['pm:workload:remove']"
                 ></el-button>
               </el-tooltip>
             </template>
@@ -370,12 +386,53 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="教师姓名" prop="teacherName">
-              <el-input
+              <el-select
                 v-model="form.teacherName"
-                placeholder="请输入教师姓名"
-                maxlength="30"
+                @change="selectChangeParent"
+                placeholder="请选择作者工号:姓名"
+                filterable
                 :disabled="!(form.id == undefined)"
-              />
+              >
+                <el-option
+                  v-for="(user, index) in userSelect"
+                  :key="index"
+                  :label="`${user.userName}:${user.name}`"
+                  :value="index"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="教师工号" prop="teacherCode">
+              <el-select
+                v-model="form.teacherCode"
+                @change="selectChangeParent"
+                placeholder="请选择作者工号"
+                filterable
+                :disabled="!(form.id == undefined)"
+              >
+                <el-option
+                  v-for="(user, index) in userSelect"
+                  :key="index"
+                  :label="`${user.userName}`"
+                  :value="index"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="所属学年" prop="schoolYear">
+              <el-select v-model="form.schoolYear" placeholder="请选择">
+                <el-option
+                  v-for="dict in pm_school_year"
+                  :key="dict.value"
+                  :label="dict.label"
+                  :value="dict.value"
+                ></el-option>
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -471,20 +528,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="所属学年" prop="schoolYear">
-              <el-select v-model="form.schoolYear" placeholder="请选择">
-                <el-option
-                  v-for="dict in pm_school_year"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-                ></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
+
         <el-row>
           <el-col :span="24">
             <el-form-item label="备注">
@@ -517,7 +561,7 @@
         :limit="1"
         accept=".xlsx, .xls"
         :headers="upload.headers"
-        :action="upload.url + '?updateSupport=' + upload.updateSupport"
+        :action="upload.url + '?schoolYear=' + upload.schoolYear"
         :disabled="upload.isUploading"
         :on-progress="handleFileUploadProgress"
         :on-success="handleFileSuccess"
@@ -529,14 +573,30 @@
         <template #tip>
           <div class="el-upload__tip text-center">
             <div class="el-upload__tip">
-              <el-checkbox
+              <!-- <el-checkbox
                 v-model="upload.updateSupport"
-              />是否更新已经存在的数据
+              />是否更新已经存在的数据 -->
+              <el-select
+                v-model="upload.schoolYear"
+                placeholder="请指定学年（默认为当前学年）"
+                clearable
+                style="width: 240px"
+              >
+                <el-option
+                  v-for="dict in pm_school_year"
+                  :key="dict.value"
+                  :label="dict.label"
+                  :value="dict.value"
+                />
+              </el-select>
+            </div>
+            <div>
+              <br />
             </div>
             <span>仅允许导入xls、xlsx格式文件。</span>
-            <div>
+            <!-- <div>
               <span> 请指定sheet名称以标识学年 示例：2022-2023</span>
-            </div>
+            </div> -->
             <el-link
               type="primary"
               :underline="false"
@@ -581,6 +641,7 @@ import { get } from "@vueuse/core";
 
 const router = useRouter();
 const { proxy } = getCurrentInstance();
+const userSelect = proxy.useUsers();
 const { sys_normal_disable, sys_user_sex, pm_school_year } = proxy.useDict(
   "sys_normal_disable",
   "sys_user_sex",
@@ -612,7 +673,7 @@ const upload = reactive({
   // 是否禁用上传
   isUploading: false,
   // 是否更新已经存在的用户数据
-  updateSupport: 0,
+  schoolYear: 2022,
   // 设置上传的请求头部
   headers: { Authorization: getToken() },
   // 上传的地址
@@ -630,7 +691,8 @@ const columns = ref([
   { key: 6, label: `净工作量`, visible: true },
   { key: 7, label: `工作量`, visible: true },
   { key: 8, label: `状态`, visible: true },
-  { key: 9, label: `创建时间`, visible: true },
+  { key: 9, label: `所属学年`, visible: true },
+  { key: 10, label: `创建时间`, visible: true },
 ]);
 
 const data = reactive({
@@ -696,7 +758,7 @@ const data = reactive({
   ],
   typeOptions: [
     {
-      label: "通识必修",
+      label: "本科课程",
       value: 10,
     },
     {
@@ -875,6 +937,7 @@ function handleSelectionChange(selection) {
 /** 导入按钮操作 */
 function handleImport() {
   upload.title = "教学工作量导入";
+  upload.schoolYear = pm_school_year.value[0].value;
   upload.open = true;
 }
 /** 下载模板操作 */
@@ -921,7 +984,7 @@ function reset() {
     netWorkload: undefined,
     workload: undefined,
     schoolYear: undefined,
-    status: 0,
+    status: 10,
     remark: undefined,
   };
   proxy.resetForm("teachingWorkRef");
@@ -1004,8 +1067,10 @@ function submitForm() {
     }
   });
 }
-
+function selectChangeParent(index) {
+  form.value.teacherCode = userSelect.value[index].userName;
+  form.value.teacherName = userSelect.value[index].name;
+}
 getDeptTree();
-// getList();
 getWorkList();
 </script>

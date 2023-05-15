@@ -55,6 +55,11 @@ export function examine(ids, status) {
 
 // 修改教研论文
 export function updateEducationThesis(data) {
+    if (data.timePublish !== undefined) {
+        const start = new Date(data.timePublish);
+        start.setHours(0);
+        data.timePublish = parseInt(start.getTime().toString());
+    }
     return request({
         url: '/performance/education_thesis',
         method: 'put',
