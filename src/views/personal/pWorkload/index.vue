@@ -354,7 +354,7 @@
                 v-model="form.teacherName"
                 placeholder="请输入用户姓名"
                 maxlength="30"
-                :disabled=true
+                :disabled="true"
               />
             </el-form-item>
           </el-col>
@@ -439,7 +439,11 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="状态">
-              <el-select v-model="form.status" placeholder="请选择" :disabled=true>
+              <el-select
+                v-model="form.status"
+                placeholder="请选择"
+                :disabled="true"
+              >
                 <el-option
                   v-for="(item, index) in statusOptions"
                   :key="index"
@@ -497,7 +501,7 @@
         :limit="1"
         accept=".xlsx, .xls"
         :headers="upload.headers"
-        :action="upload.url + '?updateSupport=' + upload.updateSupport"
+        :action="upload.url + '?annual=' + upload.annual"
         :disabled="upload.isUploading"
         :on-progress="handleFileUploadProgress"
         :on-success="handleFileSuccess"
@@ -509,14 +513,31 @@
         <template #tip>
           <div class="el-upload__tip text-center">
             <div class="el-upload__tip">
-              <el-checkbox
+              <!-- <el-checkbox
                 v-model="upload.updateSupport"
-              />是否更新已经存在的数据
+              />是否更新已经存在的数据 -->
+              <span>所属学年：</span>
+              <el-select
+                v-model="upload.annual"
+                placeholder="默认为当前学年"
+                clearable
+                style="width: 160px"
+              >
+                <el-option
+                  v-for="dict in pm_school_year"
+                  :key="dict.value"
+                  :label="dict.label"
+                  :value="dict.value"
+                />
+              </el-select>
+            </div>
+            <div>
+              <br />
             </div>
             <span>仅允许导入xls、xlsx格式文件。</span>
-            <div>
-              <span> 请指定sheet名称以标识学年 示例：2022-2023</span>
-            </div>
+            <!-- <div>
+              <span> 请指定sheet名称以标识年度 示例：2022-2023</span>
+            </div> -->
             <el-link
               type="primary"
               :underline="false"
@@ -594,8 +615,8 @@ const upload = reactive({
   title: "",
   // 是否禁用上传
   isUploading: false,
-  // 是否更新已经存在的用户数据
-  updateSupport: 0,
+  // 年度
+  annual: 0,
   // 设置上传的请求头部
   headers: { Authorization: getToken() },
   // 上传的地址
@@ -858,6 +879,7 @@ function handleSelectionChange(selection) {
 /** 导入按钮操作 */
 function handleImport() {
   upload.title = "教学工作量导入";
+  upload.annual = pm_school_year.value[0].value;
   upload.open = true;
 }
 /** 下载模板操作 */
@@ -896,6 +918,7 @@ function reset() {
     id: undefined,
     teacherCode: userStore.userName,
     teacherName: userStore.name,
+    deptId: userStore.deptId,
     courseName: undefined,
     type: undefined,
     theoreticalHours: undefined,

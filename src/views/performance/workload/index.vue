@@ -2,7 +2,7 @@
   <div class="app-container">
     <el-row :gutter="20">
       <!--部门数据-->
-      <el-col :span="4" :xs="24" >
+      <el-col :span="4" :xs="24">
         <div class="head-container">
           <el-input
             v-model="deptName"
@@ -976,6 +976,7 @@ function reset() {
     id: undefined,
     teacherId: undefined,
     teacherName: undefined,
+    deptId: undefined,
     courseName: undefined,
     type: undefined,
     theoreticalHours: undefined,
@@ -1070,6 +1071,7 @@ function submitForm() {
 function selectChangeParent(index) {
   form.value.teacherCode = userSelect.value[index].userName;
   form.value.teacherName = userSelect.value[index].name;
+  form.value.deptId = userSelect.value[index].deptId;
 }
 getDeptTree();
 getWorkList();

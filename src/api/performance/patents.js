@@ -20,10 +20,10 @@ export function getPatents(id) {
 
 // 新增专利（著作权）授权情况
 export function addPatents(data) {
-    if (data.timePublish !== undefined) {
-        const start = new Date(data.timePublish);
+    if (data.timeApproval !== undefined) {
+        const start = new Date(data.timeApproval);
         start.setHours(0);
-        data.timePublish = parseInt(start.getTime().toString());
+        data.timeApproval = parseInt(start.getTime().toString());
     }
     return request({
         url: '/performance/patents',
@@ -55,6 +55,11 @@ export function examine(ids, status) {
 
 // 修改专利（著作权）授权情况
 export function updatePatents(data) {
+    if (data.timeApproval !== undefined) {
+        const start = new Date(data.timeApproval);
+        start.setHours(0);
+        data.timeApproval = parseInt(start.getTime().toString());
+    }
     return request({
         url: '/performance/patents',
         method: 'put',

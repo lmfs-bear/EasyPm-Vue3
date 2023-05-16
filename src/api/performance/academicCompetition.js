@@ -20,10 +20,10 @@ export function getCompetition(id) {
 
 // 新增竞赛获奖情况
 export function addCompetition(data) {
-    if (data.timePublish !== undefined) {
-        const start = new Date(data.timePublish);
+    if (data.timeAward !== undefined) {
+        const start = new Date(data.timeAward);
         start.setHours(0);
-        data.timePublish = parseInt(start.getTime().toString());
+        data.timeAward = parseInt(start.getTime().toString());
     }
     return request({
         url: '/performance/academic_competition',
@@ -55,6 +55,11 @@ export function examine(ids, status) {
 
 // 修改竞赛获奖情况
 export function updateCompetition(data) {
+    if (data.timeAward !== undefined) {
+        const start = new Date(data.timeAward);
+        start.setHours(0);
+        data.timeAward = parseInt(start.getTime().toString());
+    }
     return request({
         url: '/performance/academic_competition',
         method: 'put',

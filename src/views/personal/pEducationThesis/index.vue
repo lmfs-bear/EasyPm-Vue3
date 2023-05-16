@@ -430,7 +430,11 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="审核状态">
-              <el-select v-model="form.status" placeholder="请选择状态" :disabled="true">
+              <el-select
+                v-model="form.status"
+                placeholder="请选择状态"
+                :disabled="true"
+              >
                 <el-option
                   v-for="(item, index) in statusOptions"
                   :key="index"
@@ -573,7 +577,7 @@
         :limit="1"
         accept=".xlsx, .xls"
         :headers="upload.headers"
-        :action="upload.url + '?updateSupport=' + upload.updateSupport"
+        :action="upload.url + '?annual=' + upload.annual"
         :disabled="upload.isUploading"
         :on-progress="handleFileUploadProgress"
         :on-success="handleFileSuccess"
@@ -585,14 +589,31 @@
         <template #tip>
           <div class="el-upload__tip text-center">
             <div class="el-upload__tip">
-              <el-checkbox
+              <!-- <el-checkbox
                 v-model="upload.updateSupport"
-              />是否更新已经存在的数据
+              />是否更新已经存在的数据 -->
+              <span>所属年度：</span>
+              <el-select
+                v-model="upload.annual"
+                placeholder="默认为当前年度"
+                clearable
+                style="width: 160px"
+              >
+                <el-option
+                  v-for="dict in pm_year"
+                  :key="dict.value"
+                  :label="dict.label"
+                  :value="dict.value"
+                />
+              </el-select>
+            </div>
+            <div>
+              <br />
             </div>
             <span>仅允许导入xls、xlsx格式文件。</span>
-            <div>
-              <span> 请指定sheet名称以标识学年 示例：2022-2023</span>
-            </div>
+            <!-- <div>
+              <span> 请指定sheet名称以标识年度 示例：2022-2023</span>
+            </div> -->
             <el-link
               type="primary"
               :underline="false"
@@ -660,8 +681,8 @@ const upload = reactive({
   title: "",
   // 是否禁用上传
   isUploading: false,
-  // 是否更新已经存在的用户数据
-  updateSupport: 0,
+  // 年度
+  annual: 0,
   // 设置上传的请求头部
   headers: { Authorization: getToken() },
   // 上传的地址
@@ -673,16 +694,16 @@ const upload = reactive({
 const columns = ref([
   { key: 0, label: `姓名`, visible: true },
   { key: 1, label: `工号`, visible: true },
-  { key: 2, label: `主编`, visible: true },
-  { key: 3, label: `教材名称`, visible: true },
-  { key: 4, label: `ISBN`, visible: true },
-  { key: 5, label: `教材形式`, visible: true },
-  { key: 6, label: `适用层次`, visible: true },
-  { key: 7, label: `出版社`, visible: true },
-  { key: 8, label: `是否学习立项教材`, visible: true },
-  { key: 9, label: `获奖情况`, visible: true },
-  { key: 10, label: `获奖时间`, visible: true },
-  { key: 11, label: `修订情况`, visible: true },
+  { key: 2, label: `作者类型`, visible: true },
+  { key: 3, label: `论文名称`, visible: true },
+  { key: 4, label: `期刊名称`, visible: true },
+  { key: 5, label: `刊号`, visible: true },
+  { key: 6, label: `期刊收录情况`, visible: true },
+  { key: 7, label: `发表时间`, visible: true },
+  { key: 8, label: `他引次数`, visible: true },
+  { key: 9, label: `是否联合行业发表`, visible: true },
+  { key: 10, label: `是否联合国际发表`, visible: true },
+  { key: 11, label: `是否是跨学科论文`, visible: true },
   { key: 12, label: `所属年度`, visible: true },
   { key: 13, label: `状态`, visible: true },
   { key: 14, label: `创建时间`, visible: true },
@@ -694,7 +715,7 @@ const data = reactive({
     page: 1,
     size: 10,
     authorName: undefined,
-    userCode: userStore.name,
+    userCode: userStore.userName,
     annual: undefined,
     status: undefined,
     deptId: undefined,
@@ -866,6 +887,7 @@ function handleSelectionChange(selection) {
 /** 导入按钮操作 */
 function handleImport() {
   upload.title = "发表教研论文统计导入";
+  upload.annual = pm_year.value[0].value;
   upload.open = true;
 }
 /** 下载模板操作 */
@@ -905,6 +927,7 @@ function reset() {
     isbn: undefined,
     authorCode: userStore.userName,
     authorName: userStore.name,
+    deptId: userStore.deptId,
     authorType: undefined,
     thesisName: undefined,
     journalName: undefined,

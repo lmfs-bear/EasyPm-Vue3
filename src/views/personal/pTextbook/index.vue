@@ -951,6 +951,7 @@ function reset() {
     isbn: undefined,
     authorCode: userStore.userName,
     authorName: userStore.name,
+    deptId: userStore.deptId,
     textbookName: undefined,
     textbookType: undefined,
     applicableLevel: undefined,

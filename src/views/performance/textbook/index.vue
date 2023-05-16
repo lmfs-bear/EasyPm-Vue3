@@ -461,15 +461,12 @@
 
         <el-row>
           <el-col :span="12">
-            <el-form-item
-              label="作者姓名"
-              prop="authorName"
-              :disabled="!(form.id == undefined)"
-            >
+            <el-form-item label="作者姓名" prop="authorName">
               <el-select
                 v-model="form.authorName"
                 @change="selectChangeParent"
                 placeholder="请选择作者工号:姓名"
+                :disabled="!(form.id == undefined)"
                 filterable
               >
                 <el-option
@@ -485,12 +482,12 @@
             <el-form-item
               label="作者工号"
               prop="authorCode"
-              :disabled="!(form.id == undefined)"
             >
               <el-select
                 v-model="form.authorCode"
                 @change="selectChangeParent"
                 placeholder="请选择作者工号"
+                :disabled="!(form.id == undefined)"
                 filterable
               >
                 <el-option
@@ -1052,6 +1049,7 @@ function reset() {
     isbn: undefined,
     authorCode: undefined,
     authorName: undefined,
+    deptId: undefined,
     textbookName: undefined,
     textbookType: undefined,
     applicableLevel: undefined,
@@ -1151,8 +1149,7 @@ function submitForm() {
 function selectChangeParent(index) {
   form.value.authorCode = userSelect.value[index].userName;
   form.value.authorName = userSelect.value[index].name;
-  // form.value.authorCode = index.split(":")[0];
-  // form.value.authorName = index.split(":")[1];
+  form.value.deptId = userSelect.value[index].deptId;
 }
 
 getDeptTree();

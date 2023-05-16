@@ -264,9 +264,12 @@
             prop="timeApproval"
             v-if="columns[5].visible"
             :show-overflow-tooltip="true"
+            width="110"
           >
             <template #default="scope">
-              <span>{{ parseTime(scope.row.timeApproval) }}</span>
+              <span>{{
+                parseTime(scope.row.timeApproval, "{y}-{m}-{d}")
+              }}</span>
             </template>
           </el-table-column>
           <el-table-column
@@ -398,9 +401,9 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="学生姓名" prop="studentNum">
+            <el-form-item label="学生姓名" prop="studentName">
               <el-input
-                v-model="form.studentNum"
+                v-model="form.studentName"
                 placeholder="请输入学生姓名"
                 maxlength="30"
                 :disabled="!(form.id == undefined)"
@@ -479,20 +482,38 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="指导教师" prop="teacherName">
-              <el-input
+              <el-select
                 v-model="form.teacherName"
-                placeholder="请输入指导教师"
-                maxlength="20"
-              />
+                @change="selectChangeParent"
+                placeholder="请选择教师工号:姓名"
+                :disabled="!(form.id == undefined)"
+                filterable
+              >
+                <el-option
+                  v-for="(user, index) in userSelect"
+                  :key="index"
+                  :label="`${user.userName}:${user.name}`"
+                  :value="index"
+                ></el-option>
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="教师工号" prop="teacherCode">
-              <el-input
+              <el-select
                 v-model="form.teacherCode"
-                placeholder="请输入教师工号"
-                maxlength="10"
-              />
+                @change="selectChangeParent"
+                placeholder="请选择教师工号"
+                :disabled="!(form.id == undefined)"
+                filterable
+              >
+                <el-option
+                  v-for="(user, index) in userSelect"
+                  :key="index"
+                  :label="`${user.userName}`"
+                  :value="index"
+                ></el-option>
+              </el-select>
             </el-form-item>
           </el-col>
         </el-row>
@@ -546,7 +567,7 @@
         :limit="1"
         accept=".xlsx, .xls"
         :headers="upload.headers"
-        :action="upload.url + '?updateSupport=' + upload.updateSupport"
+        :action="upload.url + '?annual=' + upload.annual"
         :disabled="upload.isUploading"
         :on-progress="handleFileUploadProgress"
         :on-success="handleFileSuccess"
@@ -558,11 +579,31 @@
         <template #tip>
           <div class="el-upload__tip text-center">
             <div class="el-upload__tip">
-              <el-checkbox
+              <!-- <el-checkbox
                 v-model="upload.updateSupport"
-              />是否更新已经存在的数据
+              />是否更新已经存在的数据 -->
+              <span>所属年度：</span>
+              <el-select
+                v-model="upload.annual"
+                placeholder="默认为当前年度"
+                clearable
+                style="width: 160px"
+              >
+                <el-option
+                  v-for="dict in pm_year"
+                  :key="dict.value"
+                  :label="dict.label"
+                  :value="dict.value"
+                />
+              </el-select>
+            </div>
+            <div>
+              <br />
             </div>
             <span>仅允许导入xls、xlsx格式文件。</span>
+            <!-- <div>
+              <span> 请指定sheet名称以标识年度 示例：2022-2023</span>
+            </div> -->
             <el-link
               type="primary"
               :underline="false"
@@ -600,6 +641,7 @@ import useUserStore from "@/store/modules/user";
 const userStore = useUserStore();
 const router = useRouter();
 const { proxy } = getCurrentInstance();
+const userSelect = proxy.useUsers();
 const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
   "sys_normal_disable",
   "sys_user_sex",
@@ -629,32 +671,26 @@ const upload = reactive({
   title: "",
   // 是否禁用上传
   isUploading: false,
-  // 是否更新已经存在的用户数据
-  updateSupport: 0,
+  // 年度
+  annual: 0,
   // 设置上传的请求头部
   headers: { Authorization: getToken() },
   // 上传的地址
-  url:
-    import.meta.env.VITE_APP_BASE_API +
-    "/performance/patents/importData",
+  url: import.meta.env.VITE_APP_BASE_API + "/performance/patents/importData",
 });
 // 列显隐信息
 const columns = ref([
-  { key: 0, label: `姓名`, visible: true },
-  { key: 1, label: `工号`, visible: true },
-  { key: 2, label: `主编`, visible: true },
-  { key: 3, label: `教材名称`, visible: true },
-  { key: 4, label: `ISBN`, visible: true },
-  { key: 5, label: `教材形式`, visible: true },
-  { key: 6, label: `适用层次`, visible: true },
-  { key: 7, label: `出版社`, visible: true },
-  { key: 8, label: `是否学习立项教材`, visible: true },
-  { key: 9, label: `获奖情况`, visible: true },
-  { key: 10, label: `获奖时间`, visible: true },
-  { key: 11, label: `修订情况`, visible: true },
-  { key: 12, label: `所属年度`, visible: true },
-  { key: 13, label: `状态`, visible: true },
-  { key: 14, label: `创建时间`, visible: true },
+  { key: 0, label: `学号`, visible: true },
+  { key: 1, label: `学生姓名`, visible: true },
+  { key: 2, label: `名称`, visible: true },
+  { key: 3, label: `类型`, visible: true },
+  { key: 4, label: `授权号`, visible: true },
+  { key: 5, label: `获批时间`, visible: true },
+  { key: 6, label: `第几发明人`, visible: true },
+  { key: 7, label: `指导教师`, visible: true },
+  { key: 8, label: `状态`, visible: true },
+  { key: 9, label: `所属年度`, visible: true },
+  { key: 10, label: `创建时间`, visible: true },
 ]);
 
 const data = reactive({
@@ -818,6 +854,7 @@ function handleSelectionChange(selection) {
 /** 导入按钮操作 */
 function handleImport() {
   upload.title = "本科生专利（著作权）授权情况统计导入";
+  upload.annual = pm_year.value[0].value;
   upload.open = true;
 }
 /** 下载模板操作 */
@@ -950,7 +987,11 @@ function submitForm() {
     }
   });
 }
-
+function selectChangeParent(index) {
+  form.value.authorCode = userSelect.value[index].userName;
+  form.value.authorName = userSelect.value[index].name;
+  form.value.deptId = userSelect.value[index].deptId;
+}
 getDeptTree();
 getList();
 </script>

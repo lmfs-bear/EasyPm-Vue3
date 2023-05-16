@@ -586,8 +586,8 @@ const upload = reactive({
   title: "",
   // 是否禁用上传
   isUploading: false,
-  // 是否更新已经存在的用户数据
-  updateSupport: 0,
+  // 年度
+  annual: 0,
   // 设置上传的请求头部
   headers: { Authorization: getToken() },
   // 上传的地址
@@ -595,21 +595,17 @@ const upload = reactive({
 });
 // 列显隐信息
 const columns = ref([
-  { key: 0, label: `姓名`, visible: true },
-  { key: 1, label: `工号`, visible: true },
-  { key: 2, label: `主编`, visible: true },
-  { key: 3, label: `教材名称`, visible: true },
-  { key: 4, label: `ISBN`, visible: true },
-  { key: 5, label: `教材形式`, visible: true },
-  { key: 6, label: `适用层次`, visible: true },
-  { key: 7, label: `出版社`, visible: true },
-  { key: 8, label: `是否学习立项教材`, visible: true },
-  { key: 9, label: `获奖情况`, visible: true },
-  { key: 10, label: `获奖时间`, visible: true },
-  { key: 11, label: `修订情况`, visible: true },
-  { key: 12, label: `所属年度`, visible: true },
-  { key: 13, label: `状态`, visible: true },
-  { key: 14, label: `创建时间`, visible: true },
+  { key: 0, label: `学号`, visible: true },
+  { key: 1, label: `学生姓名`, visible: true },
+  { key: 2, label: `名称`, visible: true },
+  { key: 3, label: `类型`, visible: true },
+  { key: 4, label: `授权号`, visible: true },
+  { key: 5, label: `获批时间`, visible: true },
+  { key: 6, label: `第几发明人`, visible: true },
+  { key: 7, label: `指导教师`, visible: true },
+  { key: 8, label: `状态`, visible: true },
+  { key: 9, label: `所属年度`, visible: true },
+  { key: 10, label: `创建时间`, visible: true },
 ]);
 
 const data = reactive({

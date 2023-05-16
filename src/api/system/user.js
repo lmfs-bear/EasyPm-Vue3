@@ -143,7 +143,7 @@ export function useUsers() {
   const res = ref([{ userName: '', name: '' }]);
   return (() => {
     userSelect().then(resp => {
-      res.value = resp.data.map(p => ({ userName: p.userName, name: p.name }))
+      res.value = resp.data.map(p => ({ userName: p.userName, name: p.name, deptId: p.deptId }))
     })
     return res;
   })()

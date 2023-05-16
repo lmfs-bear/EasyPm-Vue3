@@ -459,15 +459,12 @@
 
         <el-row>
           <el-col :span="12">
-            <el-form-item
-              label="作者姓名"
-              prop="authorName"
-              :disabled="!(form.id == undefined)"
-            >
+            <el-form-item label="作者姓名" prop="authorName">
               <el-select
                 v-model="form.authorName"
                 @change="selectChangeParent"
                 placeholder="请选择作者工号:姓名"
+                :disabled="!(form.id == undefined)"
                 filterable
               >
                 <el-option
@@ -480,15 +477,12 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item
-              label="作者工号"
-              prop="authorCode"
-              :disabled="!(form.id == undefined)"
-            >
+            <el-form-item label="作者工号" prop="authorCode">
               <el-select
                 v-model="form.authorCode"
                 @change="selectChangeParent"
                 placeholder="请选择作者工号"
+                :disabled="!(form.id == undefined)"
                 filterable
               >
                 <el-option
@@ -653,7 +647,7 @@
       </template>
     </el-dialog>
 
-    <!-- 用户导入对话框 -->
+    <!-- 数据导入对话框 -->
     <el-dialog
       :title="upload.title"
       v-model="upload.open"
@@ -1015,6 +1009,7 @@ function reset() {
     isbn: undefined,
     authorCode: undefined,
     authorName: undefined,
+    deptId: undefined,
     authorType: undefined,
     thesisName: undefined,
     journalName: undefined,
@@ -1111,6 +1106,7 @@ function submitForm() {
 function selectChangeParent(index) {
   form.value.authorCode = userSelect.value[index].userName;
   form.value.authorName = userSelect.value[index].name;
+  form.value.deptId = userSelect.value[index].deptId;
 }
 getDeptTree();
 getList();
