@@ -17,7 +17,13 @@ export function getExcellentOrganization(id) {
         method: 'get'
     })
 }
-
+export function getLog(id) {
+    return request({
+      url: '/performance/examineLog/' + parseStrEmpty(id),
+      method: 'get'
+    })
+  }
+  
 // 新增获优秀组织奖情况
 export function addExcellentOrganization(data) {
     if (data.timeCompetition !== undefined) {

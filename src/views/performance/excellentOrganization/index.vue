@@ -258,7 +258,14 @@
             v-if="columns[6].visible"
             :show-overflow-tooltip="true"
           />
-
+          <el-table-column
+            label="工作量分值"
+            align="center"
+            key="workload"
+            prop="workload"
+            width="90"
+            :show-overflow-tooltip="true"
+          />
           <el-table-column
             label="状态"
             align="center"
@@ -299,7 +306,7 @@
           <el-table-column
             label="操作"
             align="center"
-            width="150"
+            width="180"
             class-name="small-padding fixed-width"
           >
             <template #default="scope">
@@ -310,6 +317,14 @@
                   icon="Edit"
                   @click="handleUpdate(scope.row)"
                   v-hasPermi="['pm:workload:edit']"
+                ></el-button>
+              </el-tooltip>
+              <el-tooltip content="审核详情" placement="top">
+                <el-button
+                  link
+                  type="primary"
+                  icon="View"
+                  @click="handleView(scope.row)"
                 ></el-button>
               </el-tooltip>
               <el-tooltip content="审核通过" placement="top">
@@ -358,7 +373,12 @@
 
     <!-- 添加或修改承办省级以上学科竞赛及获优秀组织奖情况对话框 -->
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
-      <el-form :model="form" :rules="rules" ref="ExcellentOrganizationRef" label-width="80px">
+      <el-form
+        :model="form"
+        :rules="rules"
+        ref="ExcellentOrganizationRef"
+        label-width="80px"
+      >
         <el-row>
           <el-col :span="12">
             <el-form-item label="竞赛时间" prop="timeCompetition">
@@ -434,25 +454,41 @@
           </el-col>
         </el-row>
 
-        <el-row>
+      <el-row>
           <el-col :span="12">
             <el-form-item label="指导教师" prop="teacherName">
-              <el-input
+              <el-select
                 v-model="form.teacherName"
-                placeholder="请输入指导教师"
-                maxlength="20"
+                @change="selectChangeParent"
+                placeholder="请选择教师工号:姓名"
                 :disabled="!(form.id == undefined)"
-              />
+                filterable
+              >
+                <el-option
+                  v-for="(user, index) in userSelect"
+                  :key="index"
+                  :label="`${user.userName}:${user.name}`"
+                  :value="index"
+                ></el-option>
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="教师工号" prop="teacherCode">
-              <el-input
+              <el-select
                 v-model="form.teacherCode"
-                placeholder="请输入教师工号"
-                maxlength="10"
+                @change="selectChangeParent"
+                placeholder="请选择教师工号"
                 :disabled="!(form.id == undefined)"
-              />
+                filterable
+              >
+                <el-option
+                  v-for="(user, index) in userSelect"
+                  :key="index"
+                  :label="`${user.userName}`"
+                  :value="index"
+                ></el-option>
+              </el-select>
             </el-form-item>
           </el-col>
         </el-row>
@@ -472,7 +508,11 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="审核状态">
-              <el-select v-model="form.status" placeholder="请选择状态">
+              <el-select
+                v-model="form.status"
+                placeholder="请选择状态"
+                :disabled="true"
+              >
                 <el-option
                   v-for="(item, index) in statusOptions"
                   :key="index"
@@ -484,7 +524,18 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row> </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="工作量" prop="workload">
+              <el-input-number
+                v-model="form.workload"
+                placeholder="为空则系统自动计算"
+                controls-position="right"
+                :precision="2"
+                style="width: 100%"
+              />
+            </el-form-item> </el-col
+        ></el-row>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -540,6 +591,24 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 审核日志详细 -->
+    <el-dialog title="审核详情" v-model="logOpen" width="700px" append-to-body>
+      <el-timeline>
+        <el-timeline-item
+          v-for="(item, index) in logs"
+          :key="index"
+          :timestamp="parseTime(item.timeExamine)"
+        >
+          {{ item.showContent }}
+        </el-timeline-item>
+      </el-timeline>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="logOpen = false">关 闭</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -552,6 +621,7 @@ import {
   addExcellentOrganization,
   updateExcellentOrganization,
   examine,
+  getLog,
   delExcellentOrganization,
 } from "@/api/performance/excellentOrganization.js";
 import { get } from "@vueuse/core";
@@ -560,6 +630,7 @@ import useUserStore from "@/store/modules/user";
 const userStore = useUserStore();
 const router = useRouter();
 const { proxy } = getCurrentInstance();
+const userSelect = proxy.useUsers();
 const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
   "sys_normal_disable",
   "sys_user_sex",
@@ -568,6 +639,8 @@ const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
 
 const list = ref([]);
 const open = ref(false);
+const logOpen = ref(false);
+const logs = ref([]);
 const loading = ref(true);
 const showSearch = ref(true);
 const ids = ref([]);
@@ -594,7 +667,9 @@ const upload = reactive({
   // 设置上传的请求头部
   headers: { Authorization: getToken() },
   // 上传的地址
-  url: import.meta.env.VITE_APP_BASE_API + "/performance/excellent_organization/importData",
+  url:
+    import.meta.env.VITE_APP_BASE_API +
+    "/performance/excellent_organization/importData",
 });
 // 列显隐信息
 const columns = ref([
@@ -617,6 +692,7 @@ const columns = ref([
 
 const data = reactive({
   form: {},
+  logForm: [{}],
   queryParams: {
     page: 1,
     size: 10,
@@ -630,21 +706,24 @@ const data = reactive({
   rules: {
     teacherName: [
       { required: true, message: "指导教师不能为空", trigger: "blur" },
-      // {
-      //   min: 2,
-      //   max: 10,
-      //   message: "作者姓名长度必须介于 2 和 10 之间",
-      //   trigger: "blur",
-      // },
     ],
     teacherCode: [
       { required: true, message: "教师工号不能为空", trigger: "blur" },
     ],
-    authorType: [
-      { required: true, message: "作者类型不能为空", trigger: "change" },
+    competitionName: [
+      { required: true, message: "竞赛名称不能为空", trigger: "change" },
     ],
-    thesisName: [
-      { required: true, message: "论文名称不能为空", trigger: "change" },
+    timeCompetition: [
+      { required: true, message: "竞赛时间不能为空", trigger: "change" },
+    ],
+    competitionLevel: [
+      { required: true, message: "竞赛级别不能为空", trigger: "change" },
+    ],
+    hostedBy: [
+      { required: true, message: "主办单位不能为空", trigger: "change" },
+    ],
+    organizer: [
+      { required: true, message: "承办单位不能为空", trigger: "change" },
     ],
     annual: [
       {
@@ -688,7 +767,8 @@ const data = reactive({
   ],
 });
 
-const { queryParams, form, rules, statusOptions, typeOptions } = toRefs(data);
+const { queryParams, form, logForm, rules, statusOptions, typeOptions } =
+  toRefs(data);
 
 /** 通过条件过滤节点  */
 const filterNode = (value, data) => {
@@ -708,13 +788,13 @@ function getDeptTree() {
 /** 查询明细列表 */
 function getList() {
   loading.value = true;
-  listExcellentOrganization(proxy.addDateRange(queryParams.value, dateRange.value)).then(
-    (res) => {
-      loading.value = false;
-      list.value = res.data;
-      total.value = res.total;
-    }
-  );
+  listExcellentOrganization(
+    proxy.addDateRange(queryParams.value, dateRange.value)
+  ).then((res) => {
+    loading.value = false;
+    list.value = res.data;
+    total.value = res.total;
+  });
 }
 /** 节点单击事件 */
 function handleNodeClick(data) {
@@ -818,8 +898,19 @@ function reset() {
     isInterdiscipline: 1,
     status: 10,
     annual: undefined,
+    workload: undefined,
   };
   proxy.resetForm("ExcellentOrganizationRef");
+}
+/** 重置操作表单 */
+function resetLog() {
+  logForm.value = [
+    {
+      id: undefined,
+      showContent: undefined,
+      timeExamine: undefined,
+    },
+  ];
 }
 /** 取消按钮 */
 function cancel() {
@@ -899,7 +990,23 @@ function submitForm() {
     }
   });
 }
-
+function selectChangeParent(index) {
+  form.value.teacherCode = userSelect.value[index].userName;
+  form.value.teacherName = userSelect.value[index].name;
+  form.value.deptId = userSelect.value[index].deptId;
+}
+function handleView(row) {
+  resetLog();
+  logs.value = undefined;
+  const id = row.id;
+  getLog(id).then((response) => {
+    logs.value = response.data;
+    if (response.data.length === 0) {
+      logs.value = [{ showContent: "当前数据无审核记录" }];
+    }
+    logOpen.value = true;
+  });
+}
 getDeptTree();
 getList();
 </script>

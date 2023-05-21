@@ -318,7 +318,7 @@
           <el-table-column
             label="操作"
             align="center"
-            width="150"
+            width="180"
             class-name="small-padding fixed-width"
           >
             <template #default="scope">
@@ -329,6 +329,14 @@
                   icon="Edit"
                   @click="handleUpdate(scope.row)"
                   v-hasPermi="['pm:workload:edit']"
+                ></el-button>
+              </el-tooltip>
+              <el-tooltip content="审核详情" placement="top">
+                <el-button
+                  link
+                  type="primary"
+                  icon="View"
+                  @click="handleView(scope.row)"
                 ></el-button>
               </el-tooltip>
               <el-tooltip content="审核通过" placement="top">
@@ -467,19 +475,23 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="理论学时" prop="theoreticalHours">
-              <el-input
+              <el-input-number
                 v-model="form.theoreticalHours"
                 placeholder="请输入理论学时"
-                maxlength="11"
+                controls-position="right"
+                :min="0"
+                style="width: 100%"
               />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="实验学时" prop="experimentalHours">
-              <el-input
+              <el-input-number
                 v-model="form.experimentalHours"
                 placeholder="请输入实验学时"
-                maxlength="11"
+                controls-position="right"
+                :min="0"
+                style="width: 100%"
               />
             </el-form-item>
           </el-col>
@@ -487,19 +499,23 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="总人数" prop="studentNum">
-              <el-input
+              <el-input-number
                 v-model="form.studentNum"
                 placeholder="请输入总人数"
-                maxlength="30"
+                controls-position="right"
+                :min="0"
+                style="width: 100%"
               />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="净工作量" prop="netWorkload">
-              <el-input
+              <el-input-number
                 v-model="form.netWorkload"
                 placeholder="为空则系统自动计算"
-                maxlength="11"
+                controls-position="right"
+                :precision="2"
+                style="width: 100%"
               />
             </el-form-item>
           </el-col>
@@ -507,10 +523,12 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="工作量" prop="workload">
-              <el-input
+              <el-input-number
                 v-model="form.workload"
                 placeholder="为空则系统自动计算"
-                maxlength="11"
+                controls-position="right"
+                :precision="2"
+                style="width: 100%"
               />
             </el-form-item>
           </el-col>
@@ -614,6 +632,24 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 审核日志详细 -->
+    <el-dialog title="审核详情" v-model="logOpen" width="700px" append-to-body>
+      <el-timeline>
+        <el-timeline-item
+          v-for="(item, index) in logs"
+          :key="index"
+          :timestamp="parseTime(item.timeExamine)"
+        >
+          {{ item.showContent }}
+        </el-timeline-item>
+      </el-timeline>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="logOpen = false">关 闭</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -636,6 +672,7 @@ import {
   updateTeachingWork,
   examine,
   delTeachingWork,
+  getLog,
 } from "@/api/performance/teachingWork";
 import { get } from "@vueuse/core";
 
@@ -649,8 +686,10 @@ const { sys_normal_disable, sys_user_sex, pm_school_year } = proxy.useDict(
 );
 
 const userList = ref([]);
+const logs = ref([]);
 const workList = ref([]);
 const open = ref(false);
+const logOpen = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
 const ids = ref([]);
@@ -697,6 +736,7 @@ const columns = ref([
 
 const data = reactive({
   form: {},
+  logForm: [{}],
   queryParams: {
     page: 1,
     size: 10,
@@ -708,12 +748,9 @@ const data = reactive({
   rules: {
     teacherName: [
       { required: true, message: "教师姓名不能为空", trigger: "blur" },
-      {
-        min: 2,
-        max: 20,
-        message: "教师姓名长度必须介于 2 和 20 之间",
-        trigger: "blur",
-      },
+    ],
+    teacherCode: [
+      { required: true, message: "教师工号不能为空", trigger: "blur" },
     ],
     type: [{ required: true, message: "课程类型不能为空", trigger: "blur" }],
     courseName: [
@@ -761,18 +798,18 @@ const data = reactive({
       label: "本科课程",
       value: 10,
     },
-    {
-      label: "专业必修",
-      value: 20,
-    },
-    {
-      label: "专业选修",
-      value: 30,
-    },
-    {
-      label: "实践必修",
-      value: 40,
-    },
+    // {
+    //   label: "专业必修",
+    //   value: 20,
+    // },
+    // {
+    //   label: "专业选修",
+    //   value: 30,
+    // },
+    // {
+    //   label: "实践必修",
+    //   value: 40,
+    // },
     {
       label: "专业实习",
       value: 50,
@@ -812,7 +849,8 @@ const data = reactive({
   ],
 });
 
-const { queryParams, form, rules, statusOptions, typeOptions } = toRefs(data);
+const { queryParams, form, logForm, rules, statusOptions, typeOptions } =
+  toRefs(data);
 
 /** 通过条件过滤节点  */
 const filterNode = (value, data) => {
@@ -829,17 +867,6 @@ function getDeptTree() {
     deptOptions.value = response.data;
   });
 }
-/** 查询用户列表 */
-// function getList() {
-//   loading.value = true;
-//   listUser(proxy.addDateRange(queryParams.value, dateRange.value)).then(
-//     (res) => {
-//       loading.value = false;
-//       userList.value = res.data;
-//       total.value = res.total;
-//     }
-//   );
-// }
 /** 查询工作量明细列表 */
 function getWorkList() {
   loading.value = true;
@@ -990,6 +1017,16 @@ function reset() {
   };
   proxy.resetForm("teachingWorkRef");
 }
+/** 重置操作表单 */
+function resetLog() {
+  logForm.value = [
+    {
+      id: undefined,
+      showContent: undefined,
+      timeExamine: undefined,
+    },
+  ];
+}
 /** 取消按钮 */
 function cancel() {
   open.value = false;
@@ -997,6 +1034,12 @@ function cancel() {
 }
 /** 新增按钮操作 */
 function handleAdd() {
+  reset();
+  open.value = true;
+  title.value = "添加教学工作量明细";
+}
+/** 新增按钮操作 */
+function handleLog() {
   reset();
   open.value = true;
   title.value = "添加教学工作量明细";
@@ -1038,9 +1081,19 @@ function handleReject(row) {
   if (row.id !== undefined) arr.push(row.id);
   const workIds = arr.length <= 0 ? ids.value : arr;
   proxy.$modal
-    .confirm("是否确认驳回选中的数据项？")
-    .then(function () {
-      return examine(workIds, 20);
+    .promptReject("是否确认驳回选中的数据项？驳回原因：", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      inputErrorMessage: "原因不能为空",
+      inputValidator: (value) => {
+        // 点击按钮时，对文本框里面的值进行验证
+        if (!value) {
+          return inputErrorMessage;
+        }
+      },
+    })
+    .then(function (value) {
+      return examine(workIds, 20, value.value);
     })
     .then(() => {
       getWorkList();
@@ -1072,6 +1125,19 @@ function selectChangeParent(index) {
   form.value.teacherCode = userSelect.value[index].userName;
   form.value.teacherName = userSelect.value[index].name;
   form.value.deptId = userSelect.value[index].deptId;
+}
+
+function handleView(row) {
+  resetLog();
+  logs.value = undefined;
+  const id = row.id;
+  getLog(id).then((response) => {
+    logs.value = response.data;
+    if (response.data.length === 0) {
+      logs.value = [{ "showContent": "当前数据无审核记录" }];
+    }
+    logOpen.value = true;
+  });
 }
 getDeptTree();
 getWorkList();

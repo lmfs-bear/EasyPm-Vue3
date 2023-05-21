@@ -78,3 +78,10 @@ export function submit(ids) {
         data: data
     })
 }
+export function getLog(id) {
+    return request({
+      url: '/performance/examineLog/' + parseStrEmpty(id),
+      method: 'get'
+    })
+  }
+  

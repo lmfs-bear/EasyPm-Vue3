@@ -324,6 +324,14 @@
             </template>
           </el-table-column>
           <el-table-column
+            label="工作量分值"
+            align="center"
+            key="workload"
+            prop="workload"
+            width="90"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
             label="修订情况"
             align="center"
             key="revision"
@@ -371,7 +379,7 @@
           <el-table-column
             label="操作"
             align="center"
-            width="150"
+            width="180"
             class-name="small-padding fixed-width"
           >
             <template #default="scope">
@@ -382,6 +390,14 @@
                   icon="Edit"
                   @click="handleUpdate(scope.row)"
                   v-hasPermi="['pm:workload:edit']"
+                ></el-button>
+              </el-tooltip>
+              <el-tooltip content="审核详情" placement="top">
+                <el-button
+                  link
+                  type="primary"
+                  icon="View"
+                  @click="handleView(scope.row)"
                 ></el-button>
               </el-tooltip>
               <el-tooltip content="审核通过" placement="top">
@@ -428,7 +444,7 @@
       </el-col>
     </el-row>
 
-    <!-- 添加或修改教学工作量配置对话框 -->
+    <!-- 添加或修改教材出版统计配置对话框 -->
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
       <el-form
         :model="form"
@@ -479,10 +495,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item
-              label="作者工号"
-              prop="authorCode"
-            >
+            <el-form-item label="作者工号" prop="authorCode">
               <el-select
                 v-model="form.authorCode"
                 @change="selectChangeParent"
@@ -608,7 +621,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="审核状态">
-              <el-select v-model="form.status" placeholder="请选择状态">
+              <el-select v-model="form.status" placeholder="请选择状态" :disabled=true>
                 <el-option
                   v-for="(item, index) in statusOptions"
                   :key="index"
@@ -674,6 +687,17 @@
             </el-form-item>
           </el-col>
         </el-row>
+        <el-col :span="12">
+          <el-form-item label="工作量" prop="workload">
+            <el-input-number
+              v-model="form.workload"
+              placeholder="为空则系统自动计算"
+              controls-position="right"
+              :precision="2"
+              style="width: 100%"
+            />
+          </el-form-item>
+        </el-col>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -749,6 +773,24 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 审核日志详细 -->
+    <el-dialog title="审核详情" v-model="logOpen" width="700px" append-to-body>
+      <el-timeline>
+        <el-timeline-item
+          v-for="(item, index) in logs"
+          :key="index"
+          :timestamp="parseTime(item.timeExamine)"
+        >
+          {{ item.showContent }}
+        </el-timeline-item>
+      </el-timeline>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="logOpen = false">关 闭</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -761,6 +803,7 @@ import {
   addTextbook,
   updateTextbook,
   examine,
+  getLog,
   delTextbook,
 } from "@/api/performance/textbook";
 import { get } from "@vueuse/core";
@@ -777,8 +820,10 @@ const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
 );
 
 const userList = ref([]);
+const logs = ref([]);
 const workList = ref([]);
 const open = ref(false);
+const logOpen = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
 const ids = ref([]);
@@ -829,6 +874,7 @@ const columns = ref([
 
 const data = reactive({
   form: {},
+  logForm: [{}],
   queryParams: {
     page: 1,
     size: 10,
@@ -839,14 +885,11 @@ const data = reactive({
     deptId: undefined,
   },
   rules: {
-    teacherName: [
-      { required: true, message: "作者姓名不能为空", trigger: "blur" },
-      {
-        min: 2,
-        max: 10,
-        message: "作者姓名长度必须介于 2 和 10 之间",
-        trigger: "blur",
-      },
+    authorName: [
+      { required: true, message: "教师姓名不能为空", trigger: "blur" },
+    ],
+    authorCode: [
+      { required: true, message: "教师工号不能为空", trigger: "blur" },
     ],
     userCode: [
       { required: true, message: "作者工号不能为空", trigger: "blur" },
@@ -926,6 +969,7 @@ const data = reactive({
 const {
   queryParams,
   form,
+  logForm,
   rules,
   statusOptions,
   typeOptions,
@@ -1064,8 +1108,19 @@ function reset() {
     reprint: undefined,
     status: 10,
     remark: undefined,
+    workload: undefined,
   };
   proxy.resetForm("TextbookRef");
+}
+/** 重置操作表单 */
+function resetLog() {
+  logForm.value = [
+    {
+      id: undefined,
+      showContent: undefined,
+      timeExamine: undefined,
+    },
+  ];
 }
 /** 取消按钮 */
 function cancel() {
@@ -1076,7 +1131,7 @@ function cancel() {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加教学工作量明细";
+  title.value = "添加教材出版统计";
 }
 /** 修改按钮操作 */
 function handleUpdate(row) {
@@ -1089,7 +1144,7 @@ function handleUpdate(row) {
     form.value.postIds = response.postIds;
     form.value.roleIds = response.roleIds;
     open.value = true;
-    title.value = "修改教学工作量";
+    title.value = "修改教材出版统计";
     form.password = "";
   });
 }
@@ -1150,6 +1205,19 @@ function selectChangeParent(index) {
   form.value.authorCode = userSelect.value[index].userName;
   form.value.authorName = userSelect.value[index].name;
   form.value.deptId = userSelect.value[index].deptId;
+}
+
+function handleView(row) {
+  resetLog();
+  logs.value = undefined;
+  const id = row.id;
+  getLog(id).then((response) => {
+    logs.value = response.data;
+    if (response.data.length === 0) {
+      logs.value = [{ showContent: "当前数据无审核记录" }];
+    }
+    logOpen.value = true;
+  });
 }
 
 getDeptTree();

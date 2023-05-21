@@ -52,7 +52,13 @@ export function examine(ids, status) {
         data: data
     })
 }
-
+export function getLog(id) {
+    return request({
+      url: '/performance/examineLog/' + parseStrEmpty(id),
+      method: 'get'
+    })
+  }
+  
 // 修改教研论文
 export function updateEducationThesis(data) {
     if (data.timePublish !== undefined) {

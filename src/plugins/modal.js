@@ -67,6 +67,20 @@ export default {
       type: "warning",
     })
   },
+  // 提交内容
+  promptReject(content) {
+    return ElMessageBox.prompt(content, "系统提示", {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: "warning",
+      inputValidator: (val) => {
+        if (val === null||val.length < 1 || val.length > 216) {
+          return false;
+        }
+      },
+      inputErrorMessage: '驳回原因不能为空',
+    })
+  },
   // 打开遮罩层
   loading(content) {
     loadingInstance = ElLoading.service({

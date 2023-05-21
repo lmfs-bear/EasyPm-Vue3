@@ -423,7 +423,6 @@
     <!-- 添加或修改发表教研论文统计配置对话框 -->
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
       <el-form :model="form" :rules="rules" ref="PatentsRef" label-width="80px">
-       
         <div v-for="(item, index) in form.students" :key="index">
           <!-- 嵌套的el-form   model绑定的是voucherInfo.cash里面的对象 -->
           <!-- 又定义了一个rules :rules="subVoucherRule"-->
@@ -598,7 +597,11 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="审核状态">
-              <el-select v-model="form.status" placeholder="请选择状态">
+              <el-select
+                v-model="form.status"
+                placeholder="请选择状态"
+                :disabled="true"
+              >
                 <el-option
                   v-for="(item, index) in statusOptions"
                   :key="index"

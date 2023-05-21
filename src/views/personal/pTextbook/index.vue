@@ -966,6 +966,7 @@ function reset() {
     reprint: undefined,
     status: 10,
     remark: undefined,
+    workload: undefined,
   };
   proxy.resetForm("TextbookRef");
 }

@@ -109,23 +109,48 @@
               <span>绩效考核结果概览</span>
             </div>
           </template>
+          <h3 style="font: 24px font-bold">选择年度</h3>
+          <br />
 
+          <el-select
+            v-model="result.annual"
+            placeholder="请指定年度"
+            clearable
+            style="width: 160px"
+            @change="Search"
+          >
+            <el-option
+              v-for="dict in pm_year"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            />
+          </el-select>
+          <br />
+
+          <br />
           <h3 style="font: 24px font-bold">绩效数据页</h3>
           <p>绩效数据概览</p>
           <br />
+
           <h3 style="font: 24px font-bold">
-            <CountTo :startVal="0" :endVal="2045" :duration="2000" />
+            <CountTo :startVal="0" :endVal="result.workload" :duration="2000" />
           </h3>
           <p>年度总工作量</p>
           <br />
           <h3 style="font: 24px font-bold">
-            <CountTo prefix="$" :startVal="0" :endVal="2095" :duration="2000" />
+            <CountTo
+              prefix="$"
+              :startVal="0"
+              :endVal="result.sum"
+              :duration="2000"
+            />
           </h3>
           <p>绩效数据概览</p>
           <br />
 
           <el-collapse accordion>
-            <el-collapse-item title="v3.1.0 - 2020-08-13">
+            <el-collapse-item title="2020-08-13 工作量分值+100">
               <ol>
                 <li>表格工具栏右侧添加刷新&显隐查询组件</li>
                 <li>后端支持CORS跨域请求</li>
@@ -138,7 +163,7 @@
                 <li>升级vue-cli版本到4.4.4</li>
               </ol>
             </el-collapse-item>
-            <el-collapse-item title="v1.0.0 - 2019-10-08">
+            <el-collapse-item title="2020-04-24 工作量分值+100">
               <ol>
                 <li>若依前后端分离系统正式发布</li>
               </ol>
@@ -161,7 +186,7 @@
         </el-card>
       </el-col>
 
-      <el-col :xs="24" :sm="24" :md="12" :lg="8">
+      <!-- <el-col :xs="24" :sm="24" :md="12" :lg="8">
         <el-card class="update-log">
           <template v-slot:header>
             <div class="clearfix">
@@ -179,16 +204,22 @@
             >
           </div>
         </el-card>
-      </el-col>
+      </el-col> -->
     </el-row>
+    <br />
     <el-row :gutter="20">
-      <el-col :xs="24" :sm="24" :md="12" :lg="8">
+      <el-col :xs="24" :sm="24" :md="36" :lg="24">
         <el-card class="update-log">
           <template v-slot:header>
             <div class="clearfix">
-              <span>联系信息</span>
+              <span>历年数据（工作量分值）</span>
             </div>
           </template>
+
+          <div
+            ref="chart1"
+            style="width: 100%; height: 480px; margin: auto"
+          ></div>
         </el-card>
       </el-col>
     </el-row>
@@ -198,12 +229,41 @@
 <script setup name="User">
 import * as echarts from "echarts";
 const chart = ref();
+const chart1 = ref();
 
+import useUserStore from "@/store/modules/user";
+import { getResult } from "@/api/performance/result";
 import { CountTo } from "vue3-count-to";
+const userStore = useUserStore();
+
+const { proxy } = getCurrentInstance();
+const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
+  "sys_normal_disable",
+  "sys_user_sex",
+  "pm_year"
+);
+
+/*** 用户导入参数 */
+const result = reactive({
+  // 是否显示弹出层（用户导入）
+  open: false,
+  // 弹出层标题（用户导入）
+  title: "",
+  // 是否禁用上传
+  isUploading: false,
+  // 是否更新已经存在的用户数据
+  annual: undefined,
+  workload: 1000,
+  sum: 1000,
+  // 上传的地址
+  url:
+    import.meta.env.VITE_APP_BASE_API + "/performance/teachingWork/importData",
+});
 
 onMounted(() => {
   console.log("我创建了");
   let myChart = echarts.init(chart.value);
+  let myChart1 = echarts.init(chart1.value);
   myChart.setOption({
     //此处为图表的数据
     tooltip: {
@@ -241,7 +301,7 @@ onMounted(() => {
         data: [
           { value: 1048, name: "教学工作量" },
           { value: 735, name: "教材出版" },
-          { value: 580, name: "教研论文" },
+          { value: 580.2, name: "教研论文" },
           { value: 484, name: "本科生专利（著作权）授权" },
           { value: 300, name: "本科生参加学科竞赛获奖" },
           { value: 300, name: "本科生参加创新活动、技能竞赛获奖" },
@@ -251,6 +311,24 @@ onMounted(() => {
       },
     ],
   });
+
+  myChart1.setOption({
+    //此处为图表的数据
+    xAxis: {
+      type: "category",
+      data: ["2019", "2020", "2021", "2022", "2023", "2024", "2025"],
+    },
+    yAxis: {
+      type: "value",
+    },
+    series: [
+      {
+        data: [150, 230, 224, 218, 135, 147, 260],
+        type: "line",
+      },
+    ],
+  });
+
   window.onresize = function () {
     myChart.resize();
   };
@@ -260,6 +338,55 @@ const version = ref("3.8.5");
 
 function goTarget(url) {
   window.open(url, "__blank");
+}
+
+function Search(annual) {
+  if (annual !== undefined && annual !== "") {
+    getResult(annual).then((res) => {
+      let myChart = echarts.init(chart.value);
+      myChart.setOption({
+        //此处为图表的数据
+        tooltip: {
+          trigger: "item",
+        },
+        legend: {
+          bottom: "1%",
+          left: "center",
+        },
+        series: [
+          {
+            name: "工作量分布",
+            type: "pie",
+            radius: ["40%", "70%"],
+            avoidLabelOverlap: false,
+            itemStyle: {
+              borderRadius: 10,
+              borderColor: "#fff",
+              borderWidth: 2,
+            },
+            label: {
+              show: false,
+              position: "center",
+            },
+            emphasis: {
+              label: {
+                show: true,
+                fontSize: 20,
+                fontWeight: "bold",
+              },
+            },
+            labelLine: {
+              show: false,
+            },
+            data: res.data.results,
+          },
+        ],
+      });
+
+      result.workload = res.data.workloadSum;
+      result.sum = res.data.prize;
+    });
+  }
 }
 </script>
 

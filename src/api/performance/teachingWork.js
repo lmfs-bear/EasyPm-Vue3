@@ -36,10 +36,11 @@ export function delTeachingWork(id) {
 }
 
 //审核
-export function examine(ids, status) {
+export function examine(ids, status, reason) {
   const data = {
     ids,
-    status
+    status,
+    reason,
   }
   return request({
     url: '/performance/teachingWork/examine',
@@ -66,5 +67,12 @@ export function submit(ids) {
     url: '/performance/teachingWork/submit',
     method: 'post',
     data: data
+  })
+}
+
+export function getLog(id) {
+  return request({
+    url: '/performance/examineLog/' + parseStrEmpty(id),
+    method: 'get'
   })
 }

@@ -15,7 +15,7 @@
                v-model="queryParams.operName"
                placeholder="请输入操作人员"
                clearable
-               style="width: 240px;"
+               style="width: 240px;"   
                @keyup.enter="handleQuery"
             />
          </el-form-item>
