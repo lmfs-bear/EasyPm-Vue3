@@ -146,7 +146,7 @@
               plain
               icon="Plus"
               @click="handleAdd"
-              v-hasPermi="['system:user:add']"
+              v-hasPermi="['pm:academic:add']"
               >新增</el-button
             >
           </el-col>
@@ -157,7 +157,7 @@
               icon="Edit"
               :disabled="single"
               @click="handleUpdate"
-              v-hasPermi="['system:user:edit']"
+              v-hasPermi="['pm:academic:edit']"
               >修改</el-button
             >
           </el-col>
@@ -168,7 +168,7 @@
               icon="Delete"
               :disabled="multiple"
               @click="handleDelete"
-              v-hasPermi="['system:user:remove']"
+              v-hasPermi="['pm:academic:remove']"
               >删除</el-button
             >
           </el-col>
@@ -179,7 +179,7 @@
               icon="document-checked"
               :disabled="multiple"
               @click="handleExamine"
-              v-hasPermi="['pm:workload:examine']"
+              v-hasPermi="['pm:academic:examine']"
               >审核通过</el-button
             >
           </el-col>
@@ -190,7 +190,7 @@
               icon="document-delete"
               :disabled="multiple"
               @click="handleReject"
-              v-hasPermi="['pm:workload:examine']"
+              v-hasPermi="['pm:academic:examine']"
               >审核不通过</el-button
             >
           </el-col>
@@ -200,7 +200,7 @@
               plain
               icon="Upload"
               @click="handleImport"
-              v-hasPermi="['pm:workload:import']"
+              v-hasPermi="['pm:academic:import']"
               >导入</el-button
             >
           </el-col>
@@ -210,7 +210,7 @@
               plain
               icon="Download"
               @click="handleExport"
-              v-hasPermi="['system:user:export']"
+              v-hasPermi="['pm:academic:export']"
               >导出</el-button
             >
           </el-col>
@@ -380,7 +380,7 @@
                   type="primary"
                   icon="Edit"
                   @click="handleUpdate(scope.row)"
-                  v-hasPermi="['pm:workload:edit']"
+                  v-hasPermi="['pm:academic:edit']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip content="审核详情" placement="top">
@@ -397,7 +397,7 @@
                   type="primary"
                   icon="document-checked"
                   @click="handleExamine(scope.row)"
-                  v-hasPermi="['pm:workload:examine']"
+                  v-hasPermi="['pm:academic:examine']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip content="审核不通过" placement="top">
@@ -406,7 +406,7 @@
                   type="primary"
                   icon="document-delete"
                   @click="handleReject(scope.row)"
-                  v-hasPermi="['pm:workload:examine']"
+                  v-hasPermi="['pm:academic:examine']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip
@@ -419,7 +419,7 @@
                   type="primary"
                   icon="Delete"
                   @click="handleDelete(scope.row)"
-                  v-hasPermi="['system:user:remove']"
+                  v-hasPermi="['pm:academic:remove']"
                 ></el-button>
               </el-tooltip>
             </template>

@@ -313,6 +313,14 @@
                   v-hasPermi="['pm:pWorkload:submit']"
                 ></el-button>
               </el-tooltip>
+              <el-tooltip content="审核详情" placement="top">
+                <el-button
+                  link
+                  type="primary"
+                  icon="View"
+                  @click="handleView(scope.row)"
+                ></el-button>
+              </el-tooltip>
               <el-tooltip
                 content="删除"
                 placement="top"
@@ -390,19 +398,23 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="理论学时" prop="theoreticalHours">
-              <el-input
+              <el-input-number
                 v-model="form.theoreticalHours"
                 placeholder="请输入理论学时"
-                maxlength="11"
+                controls-position="right"
+                :min="0"
+                style="width: 100%"
               />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="实验学时" prop="experimentalHours">
-              <el-input
+              <el-input-number
                 v-model="form.experimentalHours"
                 placeholder="请输入实验学时"
-                maxlength="11"
+                controls-position="right"
+                :min="0"
+                style="width: 100%"
               />
             </el-form-item>
           </el-col>
@@ -410,19 +422,23 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="总人数" prop="studentNum">
-              <el-input
+              <el-input-number
                 v-model="form.studentNum"
                 placeholder="请输入总人数"
-                maxlength="30"
+                controls-position="right"
+                :min="0"
+                style="width: 100%"
               />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="净工作量" prop="netWorkload">
-              <el-input
+              <el-input-number
                 v-model="form.netWorkload"
                 placeholder="为空则系统自动计算"
-                maxlength="11"
+                controls-position="right"
+                :precision="2"
+                style="width: 100%"
               />
             </el-form-item>
           </el-col>
@@ -430,10 +446,12 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="工作量" prop="workload">
-              <el-input
+              <el-input-number
                 v-model="form.workload"
                 placeholder="为空则系统自动计算"
-                maxlength="11"
+                controls-position="right"
+                :precision="2"
+                style="width: 100%"
               />
             </el-form-item>
           </el-col>
@@ -703,18 +721,18 @@ const data = reactive({
       label: "本科课程",
       value: 10,
     },
-    {
-      label: "专业必修",
-      value: 20,
-    },
-    {
-      label: "专业选修",
-      value: 30,
-    },
-    {
-      label: "实践必修",
-      value: 40,
-    },
+    // {
+    //   label: "专业必修",
+    //   value: 20,
+    // },
+    // {
+    //   label: "专业选修",
+    //   value: 30,
+    // },
+    // {
+    //   label: "实践必修",
+    //   value: 40,
+    // },
     {
       label: "专业实习",
       value: 50,
