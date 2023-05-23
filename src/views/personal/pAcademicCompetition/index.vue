@@ -2,7 +2,7 @@
   <div class="app-container">
     <el-row :gutter="20">
       <!--数据-->
-      <el-col :span="20" :xs="24">
+      <el-col :span="24" :xs="24">
         <el-form
           :model="queryParams"
           ref="queryRef"
@@ -121,7 +121,7 @@
               plain
               icon="Plus"
               @click="handleAdd"
-              v-hasPermi="['pm:academic:add']"
+              v-hasPermi="['pm:pAcademicCompetition:add']"
               >新增</el-button
             >
           </el-col>
@@ -132,7 +132,7 @@
               icon="Edit"
               :disabled="single"
               @click="handleUpdate"
-              v-hasPermi="['pm:academic:edit']"
+              v-hasPermi="['pm:pAcademicCompetition:edit']"
               >修改</el-button
             >
           </el-col>
@@ -143,8 +143,19 @@
               icon="Delete"
               :disabled="multiple"
               @click="handleDelete"
-              v-hasPermi="['pm:academic:remove']"
+              v-hasPermi="['pm:pAcademicCompetition:remove']"
               >删除</el-button
+            >
+          </el-col>
+          <el-col :span="1.5">
+            <el-button
+              type="primary"
+              plain
+              icon="document-add"
+              :disabled="multiple"
+              @click="handleExamine"
+              v-hasPermi="['pm:pAcademicCompetition:submit']"
+              >提交审核</el-button
             >
           </el-col>
           <el-col :span="1.5">
@@ -153,7 +164,7 @@
               plain
               icon="Upload"
               @click="handleImport"
-              v-hasPermi="['pm:academic:import']"
+              v-hasPermi="['pm:pAcademicCompetition:import']"
               >导入</el-button
             >
           </el-col>
@@ -163,7 +174,7 @@
               plain
               icon="Download"
               @click="handleExport"
-              v-hasPermi="['pm:academic:export']"
+              v-hasPermi="['pm:pAcademicCompetition:export']"
               >导出</el-button
             >
           </el-col>
@@ -333,7 +344,7 @@
                   type="primary"
                   icon="Edit"
                   @click="handleUpdate(scope.row)"
-                  v-hasPermi="['pm:academic:edit']"
+                  v-hasPermi="['pm:pAcademicCompetition:edit']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip content="审核详情" placement="top">
@@ -344,22 +355,13 @@
                   @click="handleView(scope.row)"
                 ></el-button>
               </el-tooltip>
-              <el-tooltip content="审核通过" placement="top">
+              <el-tooltip content="提交审核" placement="top">
                 <el-button
                   link
                   type="primary"
                   icon="document-checked"
                   @click="handleExamine(scope.row)"
-                  v-hasPermi="['pm:academic:examine']"
-                ></el-button>
-              </el-tooltip>
-              <el-tooltip content="审核不通过" placement="top">
-                <el-button
-                  link
-                  type="primary"
-                  icon="document-delete"
-                  @click="handleReject(scope.row)"
-                  v-hasPermi="['pm:academic:examine']"
+                  v-hasPermi="['pm:pAcademicCompetition:submit']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip
@@ -372,7 +374,7 @@
                   type="primary"
                   icon="Delete"
                   @click="handleDelete(scope.row)"
-                  v-hasPermi="['pm:academic:remove']"
+                  v-hasPermi="['pm:pAcademicCompetition:remove']"
                 ></el-button>
               </el-tooltip>
             </template>
@@ -575,7 +577,7 @@
                 v-model="form.teacherName"
                 @change="selectChangeParent"
                 placeholder="请选择教师工号:姓名"
-                :disabled="!(form.id == undefined)"
+                :disabled="true"
                 filterable
               >
                 <el-option
@@ -593,7 +595,7 @@
                 v-model="form.teacherCode"
                 @change="selectChangeParent"
                 placeholder="请选择教师工号"
-                :disabled="!(form.id == undefined)"
+                :disabled="true"
                 filterable
               >
                 <el-option
@@ -622,7 +624,11 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="审核状态">
-              <el-select v-model="form.status" placeholder="请选择状态" :disabled=true>
+              <el-select
+                v-model="form.status"
+                placeholder="请选择状态"
+                :disabled="true"
+              >
                 <el-option
                   v-for="(item, index) in statusOptions"
                   :key="index"
@@ -634,7 +640,8 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row>  <el-col :span="12">
+        <el-row>
+          <el-col :span="12">
             <el-form-item label="工作量" prop="workload">
               <el-input-number
                 v-model="form.workload"
@@ -643,8 +650,8 @@
                 :precision="2"
                 style="width: 100%"
               />
-            </el-form-item>
-          </el-col></el-row>
+            </el-form-item> </el-col
+        ></el-row>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -753,6 +760,7 @@ import {
   updateCompetition,
   examine,
   getLog,
+  submit,
   delCompetition,
 } from "@/api/performance/academicCompetition.js";
 import { get } from "@vueuse/core";
@@ -831,7 +839,7 @@ const data = reactive({
     competitionName: undefined,
     awardLevel: undefined,
     awardType: undefined,
-    // userCode: userStore.name,
+    userCode: userStore.userName,
     annual: undefined,
     type: 10,
     status: undefined,
@@ -1055,10 +1063,10 @@ function submitFileForm() {
 /** 重置操作表单 */
 function reset() {
   form.value = {
-    deptId: undefined,
+    deptId: userStore.deptId,
     id: undefined,
-    teacherCode: userStore.userName,
     teacherName: userStore.name,
+    teacherCode: userStore.userName,
     competitionName: undefined,
     timeAward: undefined,
     awardType: undefined,
@@ -1109,15 +1117,15 @@ function handleUpdate(row) {
     title.value = "修改本科生参加学科竞赛获奖情况";
   });
 }
-/** 审核通过按钮操作 */
+/** 提交审核按钮操作 */
 function handleExamine(row) {
   var arr = [];
   if (row.id !== undefined) arr.push(row.id);
   const workIds = arr.length <= 0 ? ids.value : arr;
   proxy.$modal
-    .confirm("是否确认审核通过选中的数据项？")
+    .confirm("是否确认提交审核选中的数据项？")
     .then(function () {
-      return examine(workIds, 10);
+      return submit(workIds);
     })
     .then(() => {
       getList();

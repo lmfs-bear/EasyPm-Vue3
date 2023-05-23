@@ -121,7 +121,7 @@
               plain
               icon="Plus"
               @click="handleAdd"
-              v-hasPermi="['pm:sports:add']"
+              v-hasPermi="['pm:pAcademicCompetition:add']"
               >新增</el-button
             >
           </el-col>
@@ -132,7 +132,7 @@
               icon="Edit"
               :disabled="single"
               @click="handleUpdate"
-              v-hasPermi="['pm:sports:edit']"
+              v-hasPermi="['pm:pAcademicCompetition:edit']"
               >修改</el-button
             >
           </el-col>
@@ -143,30 +143,19 @@
               icon="Delete"
               :disabled="multiple"
               @click="handleDelete"
-              v-hasPermi="['pm:sports:remove']"
+              v-hasPermi="['pm:pAcademicCompetition:remove']"
               >删除</el-button
             >
           </el-col>
           <el-col :span="1.5">
             <el-button
-              type="success"
+              type="primary"
               plain
-              icon="document-checked"
+              icon="document-add"
               :disabled="multiple"
               @click="handleExamine"
-              v-hasPermi="['pm:sports:examine']"
-              >审核通过</el-button
-            >
-          </el-col>
-          <el-col :span="1.5">
-            <el-button
-              type="danger"
-              plain
-              icon="document-delete"
-              :disabled="multiple"
-              @click="handleReject"
-              v-hasPermi="['pm:sports:examine']"
-              >审核不通过</el-button
+              v-hasPermi="['pm:pAcademicCompetition:submit']"
+              >提交审核</el-button
             >
           </el-col>
           <el-col :span="1.5">
@@ -175,7 +164,7 @@
               plain
               icon="Upload"
               @click="handleImport"
-              v-hasPermi="['pm:sports:import']"
+              v-hasPermi="['pm:pAcademicCompetition:import']"
               >导入</el-button
             >
           </el-col>
@@ -185,7 +174,7 @@
               plain
               icon="Download"
               @click="handleExport"
-              v-hasPermi="['pm:sports:export']"
+              v-hasPermi="['pm:pAcademicCompetition:export']"
               >导出</el-button
             >
           </el-col>
@@ -355,7 +344,7 @@
                   type="primary"
                   icon="Edit"
                   @click="handleUpdate(scope.row)"
-                  v-hasPermi="['pm:sports:edit']"
+                  v-hasPermi="['pm:pAcademicCompetition:edit']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip content="审核详情" placement="top">
@@ -366,22 +355,13 @@
                   @click="handleView(scope.row)"
                 ></el-button>
               </el-tooltip>
-              <el-tooltip content="审核通过" placement="top">
+              <el-tooltip content="提交审核" placement="top">
                 <el-button
                   link
                   type="primary"
                   icon="document-checked"
                   @click="handleExamine(scope.row)"
-                  v-hasPermi="['pm:sports:examine']"
-                ></el-button>
-              </el-tooltip>
-              <el-tooltip content="审核不通过" placement="top">
-                <el-button
-                  link
-                  type="primary"
-                  icon="document-delete"
-                  @click="handleReject(scope.row)"
-                  v-hasPermi="['pm:sports:examine']"
+                  v-hasPermi="['pm:pAcademicCompetition:submit']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip
@@ -394,7 +374,7 @@
                   type="primary"
                   icon="Delete"
                   @click="handleDelete(scope.row)"
-                  v-hasPermi="['pm:sports:remove']"
+                  v-hasPermi="['pm:pAcademicCompetition:remove']"
                 ></el-button>
               </el-tooltip>
             </template>
@@ -597,7 +577,7 @@
                 v-model="form.teacherName"
                 @change="selectChangeParent"
                 placeholder="请选择教师工号:姓名"
-                :disabled="!(form.id == undefined)"
+                :disabled="true"
                 filterable
               >
                 <el-option
@@ -615,7 +595,7 @@
                 v-model="form.teacherCode"
                 @change="selectChangeParent"
                 placeholder="请选择教师工号"
-                :disabled="!(form.id == undefined)"
+                :disabled="true"
                 filterable
               >
                 <el-option
@@ -644,7 +624,11 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="审核状态">
-              <el-select v-model="form.status" placeholder="请选择状态" :disabled=true>
+              <el-select
+                v-model="form.status"
+                placeholder="请选择状态"
+                :disabled="true"
+              >
                 <el-option
                   v-for="(item, index) in statusOptions"
                   :key="index"
@@ -656,7 +640,8 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row>  <el-col :span="12">
+        <el-row>
+          <el-col :span="12">
             <el-form-item label="工作量" prop="workload">
               <el-input-number
                 v-model="form.workload"
@@ -665,8 +650,8 @@
                 :precision="2"
                 style="width: 100%"
               />
-            </el-form-item>
-          </el-col></el-row>
+            </el-form-item> </el-col
+        ></el-row>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -775,6 +760,7 @@ import {
   updateCompetition,
   examine,
   getLog,
+  submit,
   delCompetition,
 } from "@/api/performance/academicCompetition.js";
 import { get } from "@vueuse/core";
@@ -792,9 +778,9 @@ const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
 
 const list = ref([]);
 const open = ref(false);
+const logOpen = ref(false);
 const logs = ref([]);
 const loading = ref(true);
-const logOpen = ref(false);
 const showSearch = ref(true);
 const ids = ref([]);
 const single = ref(true);
@@ -853,7 +839,7 @@ const data = reactive({
     competitionName: undefined,
     awardLevel: undefined,
     awardType: undefined,
-    // userCode: userStore.name,
+    userCode: userStore.userName,
     annual: undefined,
     type: 30,
     status: undefined,
@@ -1029,7 +1015,7 @@ function handleExport() {
     {
       ...queryParams.value,
     },
-    `本科生参加文艺、体育竞赛获奖情况一览表.xlsx`
+    `本科生参加学科竞赛获奖情况一览表.xlsx`
   );
 }
 /** 选择条数  */
@@ -1040,7 +1026,7 @@ function handleSelectionChange(selection) {
 }
 /** 导入按钮操作 */
 function handleImport() {
-  upload.title = "本科生参加文艺、体育竞赛获奖情况统计导入";
+  upload.title = "本科生参加学科竞赛获奖情况统计导入";
   upload.annual = pm_year.value[0].value;
   upload.open = true;
 }
@@ -1049,7 +1035,7 @@ function importTemplate() {
   proxy.download(
     "/performance/academic_competition/importTemplate",
     {},
-    `本科生参加文艺、体育竞赛获奖情况上传模板.xlsx`
+    `本科生参加学科竞赛获奖情况上传模板.xlsx`
   );
 }
 /**文件上传中处理 */
@@ -1077,10 +1063,10 @@ function submitFileForm() {
 /** 重置操作表单 */
 function reset() {
   form.value = {
-    deptId: undefined,
+    deptId: userStore.deptId,
     id: undefined,
-    teacherName: undefined,
-    teacherCode: undefined,
+    teacherName: userStore.name,
+    teacherCode: userStore.userName,
     competitionName: undefined,
     timeAward: undefined,
     awardType: undefined,
@@ -1089,7 +1075,7 @@ function reset() {
     awardWinningWork: undefined,
     status: 10,
     annual: undefined,
-    type: 30,
+    type: 10,
     studentIds: [],
     workload: undefined,
   };
@@ -1114,7 +1100,7 @@ function cancel() {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加本科生参加文艺、体育竞赛获奖情况";
+  title.value = "添加本科生参加学科竞赛获奖情况";
   getCompetition().then((response) => {
     studentOptions.value = response.data.students;
   });
@@ -1128,18 +1114,18 @@ function handleUpdate(row) {
     studentOptions.value = response.data.students;
     form.value.studentIds = response.data.studentIds;
     open.value = true;
-    title.value = "修改本科生参加文艺、体育竞赛获奖情况";
+    title.value = "修改本科生参加学科竞赛获奖情况";
   });
 }
-/** 审核通过按钮操作 */
+/** 提交审核按钮操作 */
 function handleExamine(row) {
   var arr = [];
   if (row.id !== undefined) arr.push(row.id);
   const workIds = arr.length <= 0 ? ids.value : arr;
   proxy.$modal
-    .confirm("是否确认审核通过选中的数据项？")
+    .confirm("是否确认提交审核选中的数据项？")
     .then(function () {
-      return examine(workIds, 10);
+      return submit(workIds);
     })
     .then(() => {
       getList();
