@@ -211,6 +211,19 @@
         >
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column
+            label="指导老师"
+            align="center"
+            key="teacherName"
+            prop="teacherName"
+            v-if="columns[7].visible"
+            :show-overflow-tooltip="true"
+            width="120"
+          >
+            <template #default="scope">
+              <span>{{ scope.row.teacherCode }}-{{ scope.row.teacherName }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column
             label="学号"
             align="center"
             key="studentNum"
@@ -278,14 +291,6 @@
             key="whichInventor"
             prop="whichInventor"
             v-if="columns[6].visible"
-            :show-overflow-tooltip="true"
-          />
-          <el-table-column
-            label="指导教师"
-            align="center"
-            key="teacherName"
-            prop="teacherName"
-            v-if="columns[7].visible"
             :show-overflow-tooltip="true"
           />
           <el-table-column
@@ -784,10 +789,14 @@ const data = reactive({
     teacherName: [
       { required: true, message: "教师姓名不能为空", trigger: "blur" },
     ],
-    teacherCode: [{ required: true, message: "教师工号不能为空", trigger: "blur" }],
+    teacherCode: [
+      { required: true, message: "教师工号不能为空", trigger: "blur" },
+    ],
     type: [{ required: true, message: "类别不能为空", trigger: "change" }],
     name: [{ required: true, message: "名称不能为空", trigger: "change" }],
-    authorizationNum: [{ required: true, message: "授权号不能为空", trigger: "change" }],
+    authorizationNum: [
+      { required: true, message: "授权号不能为空", trigger: "change" },
+    ],
     timeApproval: [
       { required: true, message: "获批时间不能为空", trigger: "change" },
     ],

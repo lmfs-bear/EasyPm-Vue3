@@ -794,7 +794,7 @@
   </div>
 </template>
 
-<script setup name="User">
+<script setup name="Textbook">
 import { getToken } from "@/utils/auth";
 import { deptTreeSelect } from "@/api/system/user";
 import {

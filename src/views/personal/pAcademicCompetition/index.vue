@@ -1057,8 +1057,8 @@ function reset() {
   form.value = {
     deptId: undefined,
     id: undefined,
-    teacherName: undefined,
-    teacherCode: undefined,
+    teacherCode: userStore.userName,
+    teacherName: userStore.name,
     competitionName: undefined,
     timeAward: undefined,
     awardType: undefined,

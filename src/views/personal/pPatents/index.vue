@@ -48,7 +48,7 @@
 
           <el-form-item label="所属年度" prop="annual">
             <el-select
-              v-model="queryParams.schoolYear"
+              v-model="queryParams.annual"
               placeholder="请选择年度"
               clearable
               style="width: 240px"
@@ -103,7 +103,7 @@
               plain
               icon="Plus"
               @click="handleAdd"
-              v-hasPermi="['system:user:add']"
+              v-hasPermi="['pm:pPatents:add']"
               >新增</el-button
             >
           </el-col>
@@ -114,7 +114,7 @@
               icon="Edit"
               :disabled="single"
               @click="handleUpdate"
-              v-hasPermi="['system:user:edit']"
+              v-hasPermi="['pm:pPatents:edit']"
               >修改</el-button
             >
           </el-col>
@@ -125,7 +125,7 @@
               icon="Delete"
               :disabled="multiple"
               @click="handleDelete"
-              v-hasPermi="['system:user:remove']"
+              v-hasPermi="['pm:pPatents:remove']"
               >删除</el-button
             >
           </el-col>
@@ -136,7 +136,7 @@
               icon="document-add"
               :disabled="multiple"
               @click="handleExamine"
-              v-hasPermi="['pm:workload:submit']"
+              v-hasPermi="['pm:pPatents:submit']"
               >提交审核</el-button
             >
           </el-col>
@@ -146,7 +146,7 @@
               plain
               icon="Upload"
               @click="handleImport"
-              v-hasPermi="['pm:workload:import']"
+              v-hasPermi="['pm:pPatents:import']"
               >导入</el-button
             >
           </el-col>
@@ -156,7 +156,7 @@
               plain
               icon="Download"
               @click="handleExport"
-              v-hasPermi="['system:user:export']"
+              v-hasPermi="['pm:pPatents:export']"
               >导出</el-button
             >
           </el-col>
@@ -227,9 +227,12 @@
             prop="timeApproval"
             v-if="columns[5].visible"
             :show-overflow-tooltip="true"
+            width="110"
           >
             <template #default="scope">
-              <span>{{ parseTime(scope.row.timeApproval) }}</span>
+              <span>{{
+                parseTime(scope.row.timeApproval, "{y}-{m}-{d}")
+              }}</span>
             </template>
           </el-table-column>
           <el-table-column
@@ -248,7 +251,14 @@
             v-if="columns[7].visible"
             :show-overflow-tooltip="true"
           />
-
+          <el-table-column
+            label="工作量分值"
+            align="center"
+            key="workload"
+            prop="workload"
+            width="90"
+            :show-overflow-tooltip="true"
+          />
           <el-table-column
             label="状态"
             align="center"
@@ -289,7 +299,7 @@
           <el-table-column
             label="操作"
             align="center"
-            width="150"
+            width="180"
             class-name="small-padding fixed-width"
           >
             <template #default="scope">
@@ -299,7 +309,15 @@
                   type="primary"
                   icon="Edit"
                   @click="handleUpdate(scope.row)"
-                  v-hasPermi="['pm:workload:edit']"
+                  v-hasPermi="['pm:pPatents:edit']"
+                ></el-button>
+              </el-tooltip>
+              <el-tooltip content="审核详情" placement="top">
+                <el-button
+                  link
+                  type="primary"
+                  icon="View"
+                  @click="handleView(scope.row)"
                 ></el-button>
               </el-tooltip>
               <el-tooltip content="提交审核" placement="top">
@@ -308,7 +326,7 @@
                   type="primary"
                   icon="document-checked"
                   @click="handleExamine(scope.row)"
-                  v-hasPermi="['pm:workload:submit']"
+                  v-hasPermi="['pm:pPatents:submit']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip
@@ -321,7 +339,7 @@
                   type="primary"
                   icon="Delete"
                   @click="handleDelete(scope.row)"
-                  v-hasPermi="['system:user:remove']"
+                  v-hasPermi="['pm:pPatents:remove']"
                 ></el-button>
               </el-tooltip>
             </template>
@@ -342,23 +360,37 @@
       <el-form :model="form" :rules="rules" ref="PatentsRef" label-width="80px">
         <el-row>
           <el-col :span="12">
-            <el-form-item label="学号" prop="studentNum">
-              <el-input
-                v-model="form.studentNum"
-                placeholder="请输入学号"
-                maxlength="30"
-                :disabled="!(form.id == undefined)"
-              />
+            <el-form-item label="学生姓名" prop="studentName">
+              <el-select
+                v-model="form.studentName"
+                placeholder="请选择学生姓名：学号"
+                filterable
+                @change="selectChangeStudent"
+              >
+                <el-option
+                  v-for="(item, index) in studentOptions"
+                  :key="index"
+                  :label="`${item.studentName}:${item.studentNum}`"
+                  :value="index"
+                ></el-option>
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="学生姓名" prop="studentNum">
-              <el-input
+            <el-form-item label="学生学号" prop="studentNum">
+              <el-select
                 v-model="form.studentNum"
-                placeholder="请输入学生姓名"
-                maxlength="30"
-                :disabled="!(form.id == undefined)"
-              />
+                @change="selectChangeStudent"
+                placeholder="请选择学号"
+                filterable
+              >
+                <el-option
+                  v-for="(item, index) in studentOptions"
+                  :key="index"
+                  :label="`${item.studentNum}`"
+                  :value="index"
+                ></el-option>
+              </el-select>
             </el-form-item>
           </el-col>
         </el-row>
@@ -421,10 +453,12 @@
               label-width="95"
               prop="whichInventor"
             >
-              <el-input
+              <el-input-number
                 v-model="form.whichInventor"
                 placeholder="请输入第几发明人"
-                maxlength="10"
+                controls-position="right"
+                :min="1"
+                style="width: 100%"
               />
             </el-form-item>
           </el-col>
@@ -468,7 +502,11 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="审核状态">
-              <el-select v-model="form.status" placeholder="请选择状态" :disabled="true">
+              <el-select
+                v-model="form.status"
+                placeholder="请选择状态"
+                :disabled="true"
+              >
                 <el-option
                   v-for="(item, index) in statusOptions"
                   :key="index"
@@ -480,7 +518,18 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row> </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="工作量" prop="workload">
+              <el-input-number
+                v-model="form.workload"
+                placeholder="为空则系统自动计算"
+                controls-position="right"
+                :precision="2"
+                style="width: 100%"
+              />
+            </el-form-item> </el-col
+        ></el-row>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -502,7 +551,7 @@
         :limit="1"
         accept=".xlsx, .xls"
         :headers="upload.headers"
-        :action="upload.url + '?updateSupport=' + upload.updateSupport"
+        :action="upload.url + '?annual=' + upload.annual"
         :disabled="upload.isUploading"
         :on-progress="handleFileUploadProgress"
         :on-success="handleFileSuccess"
@@ -514,11 +563,31 @@
         <template #tip>
           <div class="el-upload__tip text-center">
             <div class="el-upload__tip">
-              <el-checkbox
+              <!-- <el-checkbox
                 v-model="upload.updateSupport"
-              />是否更新已经存在的数据
+              />是否更新已经存在的数据 -->
+              <span>所属年度：</span>
+              <el-select
+                v-model="upload.annual"
+                placeholder="默认为当前年度"
+                clearable
+                style="width: 160px"
+              >
+                <el-option
+                  v-for="dict in pm_year"
+                  :key="dict.value"
+                  :label="dict.label"
+                  :value="dict.value"
+                />
+              </el-select>
+            </div>
+            <div>
+              <br />
             </div>
             <span>仅允许导入xls、xlsx格式文件。</span>
+            <!-- <div>
+              <span> 请指定sheet名称以标识年度 示例：2022-2023</span>
+            </div> -->
             <el-link
               type="primary"
               :underline="false"
@@ -533,6 +602,24 @@
         <div class="dialog-footer">
           <el-button type="primary" @click="submitFileForm">确 定</el-button>
           <el-button @click="upload.open = false">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 审核日志详细 -->
+    <el-dialog title="审核详情" v-model="logOpen" width="700px" append-to-body>
+      <el-timeline>
+        <el-timeline-item
+          v-for="(item, index) in logs"
+          :key="index"
+          :timestamp="parseTime(item.timeExamine)"
+        >
+          {{ item.showContent }}
+        </el-timeline-item>
+      </el-timeline>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="logOpen = false">关 闭</el-button>
         </div>
       </template>
     </el-dialog>
@@ -551,6 +638,7 @@ import {
   getLog,
   submit,
   delPatents,
+  getStudents,
 } from "@/api/performance/patents.js";
 import { get } from "@vueuse/core";
 import useUserStore from "@/store/modules/user";
@@ -558,6 +646,7 @@ import useUserStore from "@/store/modules/user";
 const userStore = useUserStore();
 const router = useRouter();
 const { proxy } = getCurrentInstance();
+const userSelect = proxy.useUsers();
 const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
   "sys_normal_disable",
   "sys_user_sex",
@@ -566,9 +655,9 @@ const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
 
 const list = ref([]);
 const open = ref(false);
-const loading = ref(true);
-const logs = ref([]);
 const logOpen = ref(false);
+const logs = ref([]);
+const loading = ref(true);
 const showSearch = ref(true);
 const ids = ref([]);
 const single = ref(true);
@@ -581,6 +670,7 @@ const deptOptions = ref(undefined);
 const initPassword = ref(undefined);
 const postOptions = ref([]);
 const roleOptions = ref([]);
+const studentOptions = ref([]);
 /*** 用户导入参数 */
 const upload = reactive({
   // 是否显示弹出层（用户导入）
@@ -613,6 +703,7 @@ const columns = ref([
 
 const data = reactive({
   form: {},
+  logForm: [{}],
   queryParams: {
     page: 1,
     size: 10,
@@ -625,28 +716,28 @@ const data = reactive({
     deptId: undefined,
   },
   rules: {
+    studentName: [
+      { required: true, message: "学生姓名不能为空", trigger: "blur" },
+    ],
+    studentNum: [{ required: true, message: "学号不能为空", trigger: "blur" }],
     teacherName: [
-      { required: true, message: "指导教师不能为空", trigger: "blur" },
-      // {
-      //   min: 2,
-      //   max: 10,
-      //   message: "作者姓名长度必须介于 2 和 10 之间",
-      //   trigger: "blur",
-      // },
+      { required: true, message: "教师姓名不能为空", trigger: "blur" },
     ],
     teacherCode: [
       { required: true, message: "教师工号不能为空", trigger: "blur" },
     ],
-    authorType: [
-      { required: true, message: "作者类型不能为空", trigger: "change" },
+    type: [{ required: true, message: "类别不能为空", trigger: "change" }],
+    name: [{ required: true, message: "名称不能为空", trigger: "change" }],
+    authorizationNum: [
+      { required: true, message: "授权号不能为空", trigger: "change" },
     ],
-    thesisName: [
-      { required: true, message: "论文名称不能为空", trigger: "change" },
+    timeApproval: [
+      { required: true, message: "获批时间不能为空", trigger: "change" },
     ],
     annual: [
       {
         required: true,
-        message: "请选择学年",
+        message: "请选择年度",
         trigger: "change",
       },
     ],
@@ -693,7 +784,8 @@ const data = reactive({
   ],
 });
 
-const { queryParams, form, rules, statusOptions, typeOptions } = toRefs(data);
+const { queryParams, form, logForm, rules, statusOptions, typeOptions } =
+  toRefs(data);
 
 /** 通过条件过滤节点  */
 const filterNode = (value, data) => {
@@ -772,6 +864,7 @@ function handleSelectionChange(selection) {
 /** 导入按钮操作 */
 function handleImport() {
   upload.title = "本科生专利（著作权）授权情况统计导入";
+  upload.annual = pm_year.value[0].value;
   upload.open = true;
 }
 /** 下载模板操作 */
@@ -809,24 +902,31 @@ function reset() {
   form.value = {
     id: undefined,
     isbn: undefined,
-    authorCode: undefined,
-    authorName: undefined,
-    authorType: undefined,
-    thesisName: undefined,
-    journalName: undefined,
-    issn: undefined,
-    journalInclusion: undefined,
-    timePublish: undefined,
-    otherCitations: undefined,
-    isJointIndustry: 1,
-    isJointInternational: 1,
-    isInterdiscipline: 1,
+    studentName: undefined,
+    studentNum: undefined,
+    name: undefined,
+    type: undefined,
+    authorizationNum: undefined,
+    timeApproval: undefined,
+    whichInventor: undefined,
+    deptId: userStore.deptId,
     status: 10,
     annual: undefined,
+    workload: undefined,
     teacherCode: userStore.userName,
     teacherName: userStore.name,
   };
   proxy.resetForm("PatentsRef");
+}
+/** 重置操作表单 */
+function resetLog() {
+  logForm.value = [
+    {
+      id: undefined,
+      showContent: undefined,
+      timeExamine: undefined,
+    },
+  ];
 }
 /** 取消按钮 */
 function cancel() {
@@ -838,11 +938,17 @@ function handleAdd() {
   reset();
   open.value = true;
   title.value = "添加本科生专利（著作权）授权情况";
+  getStudents().then((response) => {
+    studentOptions.value = response.data;
+  });
 }
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
   const id = row.id || ids.value;
+  getStudents().then((response) => {
+    studentOptions.value = response.data;
+  });
   getPatents(id).then((response) => {
     form.value = response.data;
     postOptions.value = response.posts;
@@ -906,7 +1012,27 @@ function submitForm() {
     }
   });
 }
-
+function selectChangeParent(index) {
+  form.value.teacherCode = userSelect.value[index].userName;
+  form.value.teacherName = userSelect.value[index].name;
+  form.value.deptId = userSelect.value[index].deptId;
+}
+function selectChangeStudent(index) {
+  form.value.studentNum = studentOptions.value[index].studentNum;
+  form.value.studentName = studentOptions.value[index].studentName;
+}
+function handleView(row) {
+  resetLog();
+  logs.value = undefined;
+  const id = row.id;
+  getLog(id).then((response) => {
+    logs.value = response.data;
+    if (response.data.length === 0) {
+      logs.value = [{ showContent: "当前数据无审核记录" }];
+    }
+    logOpen.value = true;
+  });
+}
 getDeptTree();
 getList();
 </script>

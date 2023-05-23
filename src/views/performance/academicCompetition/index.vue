@@ -227,6 +227,19 @@
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="50" align="center" />
+                    <el-table-column
+            label="指导老师"
+            align="center"
+            key="teacherName"
+            prop="teacherName"
+            v-if="columns[7].visible"
+            :show-overflow-tooltip="true"
+            width="120"
+          >
+            <template #default="scope">
+              <span>{{ scope.row.teacherCode }}-{{ scope.row.teacherName }}</span>
+            </template>
+          </el-table-column>
           <el-table-column
             label="学号 学生姓名"
             :width="120"

@@ -228,6 +228,21 @@
         >
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column
+            label="指导老师"
+            align="center"
+            key="teacherName"
+            prop="teacherName"
+            v-if="columns[7].visible"
+            :show-overflow-tooltip="true"
+            width="120"
+          >
+            <template #default="scope">
+              <span
+                >{{ scope.row.teacherCode }}-{{ scope.row.teacherName }}</span
+              >
+            </template>
+          </el-table-column>
+          <el-table-column
             label="学号 学生姓名"
             :width="120"
             align="center"
@@ -669,7 +684,11 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="审核状态">
-              <el-select v-model="form.status" placeholder="请选择状态" :disabled=true>
+              <el-select
+                v-model="form.status"
+                placeholder="请选择状态"
+                :disabled="true"
+              >
                 <el-option
                   v-for="(item, index) in statusOptions"
                   :key="index"
@@ -681,7 +700,8 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row>  <el-col :span="12">
+        <el-row>
+          <el-col :span="12">
             <el-form-item label="工作量" prop="workload">
               <el-input-number
                 v-model="form.workload"
@@ -690,8 +710,8 @@
                 :precision="2"
                 style="width: 100%"
               />
-            </el-form-item>
-          </el-col></el-row>
+            </el-form-item> </el-col
+        ></el-row>
       </el-form>
       <template #footer>
         <div class="dialog-footer">

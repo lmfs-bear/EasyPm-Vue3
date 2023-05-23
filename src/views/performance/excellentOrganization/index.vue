@@ -201,6 +201,22 @@
         >
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column
+            label="姓名"
+            align="center"
+            key="teacherName"
+            prop="teacherName"
+            v-if="columns[0].visible"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
+            label="工号"
+            align="center"
+            key="teacherCode"
+            prop="teacherCode"
+            v-if="true"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
             label="竞赛时间"
             align="center"
             key="timeCompetition"
@@ -454,7 +470,7 @@
           </el-col>
         </el-row>
 
-      <el-row>
+        <el-row>
           <el-col :span="12">
             <el-form-item label="指导教师" prop="teacherName">
               <el-select

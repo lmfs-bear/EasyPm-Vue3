@@ -198,6 +198,14 @@
             v-if="columns[0].visible"
             :show-overflow-tooltip="true"
           />
+            <el-table-column
+            label="工号"
+            align="center"
+            key="teacherCode"
+            prop="teacherCode"
+            v-if="true"
+            :show-overflow-tooltip="true"
+          />
           <el-table-column
             label="课程名称"
             align="center"

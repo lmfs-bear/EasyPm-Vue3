@@ -2,7 +2,7 @@
   <div class="app-container">
     <el-row :gutter="20">
       <!--数据-->
-      <el-col :span="20" :xs="24">
+      <el-col :span="24" :xs="24">
         <el-form
           :model="queryParams"
           ref="queryRef"
@@ -94,7 +94,7 @@
               plain
               icon="Plus"
               @click="handleAdd"
-              v-hasPermi="['system:user:add']"
+              v-hasPermi="['pm:pExcellentOrganization:add']"
               >新增</el-button
             >
           </el-col>
@@ -105,7 +105,7 @@
               icon="Edit"
               :disabled="single"
               @click="handleUpdate"
-              v-hasPermi="['system:user:edit']"
+              v-hasPermi="['pm:pExcellentOrganization:edit']"
               >修改</el-button
             >
           </el-col>
@@ -116,30 +116,19 @@
               icon="Delete"
               :disabled="multiple"
               @click="handleDelete"
-              v-hasPermi="['system:user:remove']"
+              v-hasPermi="['pm:pExcellentOrganization:remove']"
               >删除</el-button
             >
           </el-col>
           <el-col :span="1.5">
             <el-button
-              type="success"
+              type="primary"
               plain
-              icon="document-checked"
+              icon="document-add"
               :disabled="multiple"
               @click="handleExamine"
-              v-hasPermi="['pm:workload:examine']"
-              >审核通过</el-button
-            >
-          </el-col>
-          <el-col :span="1.5">
-            <el-button
-              type="danger"
-              plain
-              icon="document-delete"
-              :disabled="multiple"
-              @click="handleReject"
-              v-hasPermi="['pm:workload:examine']"
-              >审核不通过</el-button
+              v-hasPermi="['pm:pExcellentOrganization:submit']"
+              >提交审核</el-button
             >
           </el-col>
           <el-col :span="1.5">
@@ -148,7 +137,7 @@
               plain
               icon="Upload"
               @click="handleImport"
-              v-hasPermi="['pm:workload:import']"
+              v-hasPermi="['pm:pExcellentOrganization:import']"
               >导入</el-button
             >
           </el-col>
@@ -158,7 +147,7 @@
               plain
               icon="Download"
               @click="handleExport"
-              v-hasPermi="['system:user:export']"
+              v-hasPermi="['pm:pExcellentOrganization:export']"
               >导出</el-button
             >
           </el-col>
@@ -233,7 +222,14 @@
             v-if="columns[6].visible"
             :show-overflow-tooltip="true"
           />
-
+          <el-table-column
+            label="工作量分值"
+            align="center"
+            key="workload"
+            prop="workload"
+            width="90"
+            :show-overflow-tooltip="true"
+          />
           <el-table-column
             label="状态"
             align="center"
@@ -274,7 +270,7 @@
           <el-table-column
             label="操作"
             align="center"
-            width="150"
+            width="180"
             class-name="small-padding fixed-width"
           >
             <template #default="scope">
@@ -284,25 +280,24 @@
                   type="primary"
                   icon="Edit"
                   @click="handleUpdate(scope.row)"
-                  v-hasPermi="['pm:workload:edit']"
+                  v-hasPermi="['pm:pExcellentOrganization:edit']"
                 ></el-button>
               </el-tooltip>
-              <el-tooltip content="审核通过" placement="top">
+              <el-tooltip content="审核详情" placement="top">
+                <el-button
+                  link
+                  type="primary"
+                  icon="View"
+                  @click="handleView(scope.row)"
+                ></el-button>
+              </el-tooltip>
+              <el-tooltip content="提交审核" placement="top">
                 <el-button
                   link
                   type="primary"
                   icon="document-checked"
                   @click="handleExamine(scope.row)"
-                  v-hasPermi="['pm:workload:examine']"
-                ></el-button>
-              </el-tooltip>
-              <el-tooltip content="审核不通过" placement="top">
-                <el-button
-                  link
-                  type="primary"
-                  icon="document-delete"
-                  @click="handleReject(scope.row)"
-                  v-hasPermi="['pm:workload:examine']"
+                  v-hasPermi="['pm:pExcellentOrganization:submit']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip
@@ -315,7 +310,7 @@
                   type="primary"
                   icon="Delete"
                   @click="handleDelete(scope.row)"
-                  v-hasPermi="['system:user:remove']"
+                  v-hasPermi="['pm:pExcellentOrganization:remove']"
                 ></el-button>
               </el-tooltip>
             </template>
@@ -333,7 +328,12 @@
 
     <!-- 添加或修改承办省级以上学科竞赛及获优秀组织奖情况对话框 -->
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
-      <el-form :model="form" :rules="rules" ref="ExcellentOrganizationRef" label-width="80px">
+      <el-form
+        :model="form"
+        :rules="rules"
+        ref="ExcellentOrganizationRef"
+        label-width="80px"
+      >
         <el-row>
           <el-col :span="12">
             <el-form-item label="竞赛时间" prop="timeCompetition">
@@ -412,22 +412,38 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="指导教师" prop="teacherName">
-              <el-input
+              <el-select
                 v-model="form.teacherName"
-                placeholder="请输入指导教师"
-                maxlength="20"
-                :disabled="!(form.id == undefined)"
-              />
+                @change="selectChangeParent"
+                placeholder="请选择教师工号:姓名"
+                :disabled="true"
+                filterable
+              >
+                <el-option
+                  v-for="(user, index) in userSelect"
+                  :key="index"
+                  :label="`${user.userName}:${user.name}`"
+                  :value="index"
+                ></el-option>
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="教师工号" prop="teacherCode">
-              <el-input
+              <el-select
                 v-model="form.teacherCode"
-                placeholder="请输入教师工号"
-                maxlength="10"
-                :disabled="!(form.id == undefined)"
-              />
+                @change="selectChangeParent"
+                placeholder="请选择教师工号"
+                :disabled="true"
+                filterable
+              >
+                <el-option
+                  v-for="(user, index) in userSelect"
+                  :key="index"
+                  :label="`${user.userName}`"
+                  :value="index"
+                ></el-option>
+              </el-select>
             </el-form-item>
           </el-col>
         </el-row>
@@ -447,7 +463,11 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="审核状态">
-              <el-select v-model="form.status" placeholder="请选择状态">
+              <el-select
+                v-model="form.status"
+                placeholder="请选择状态"
+                :disabled="true"
+              >
                 <el-option
                   v-for="(item, index) in statusOptions"
                   :key="index"
@@ -459,7 +479,18 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row> </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="工作量" prop="workload">
+              <el-input-number
+                v-model="form.workload"
+                placeholder="为空则系统自动计算"
+                controls-position="right"
+                :precision="2"
+                style="width: 100%"
+              />
+            </el-form-item> </el-col
+        ></el-row>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -481,7 +512,7 @@
         :limit="1"
         accept=".xlsx, .xls"
         :headers="upload.headers"
-        :action="upload.url + '?updateSupport=' + upload.updateSupport"
+        :action="upload.url + '?annual=' + upload.annual"
         :disabled="upload.isUploading"
         :on-progress="handleFileUploadProgress"
         :on-success="handleFileSuccess"
@@ -493,11 +524,31 @@
         <template #tip>
           <div class="el-upload__tip text-center">
             <div class="el-upload__tip">
-              <el-checkbox
+              <!-- <el-checkbox
                 v-model="upload.updateSupport"
-              />是否更新已经存在的数据
+              />是否更新已经存在的数据 -->
+              <span>所属年度：</span>
+              <el-select
+                v-model="upload.annual"
+                placeholder="默认为当前年度"
+                clearable
+                style="width: 160px"
+              >
+                <el-option
+                  v-for="dict in pm_year"
+                  :key="dict.value"
+                  :label="dict.label"
+                  :value="dict.value"
+                />
+              </el-select>
+            </div>
+            <div>
+              <br />
             </div>
             <span>仅允许导入xls、xlsx格式文件。</span>
+            <!-- <div>
+              <span> 请指定sheet名称以标识年度 示例：2022-2023</span>
+            </div> -->
             <el-link
               type="primary"
               :underline="false"
@@ -515,6 +566,24 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 审核日志详细 -->
+    <el-dialog title="审核详情" v-model="logOpen" width="700px" append-to-body>
+      <el-timeline>
+        <el-timeline-item
+          v-for="(item, index) in logs"
+          :key="index"
+          :timestamp="parseTime(item.timeExamine)"
+        >
+          {{ item.showContent }}
+        </el-timeline-item>
+      </el-timeline>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="logOpen = false">关 闭</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -528,6 +597,7 @@ import {
   updateExcellentOrganization,
   examine,
   getLog,
+  submit,
   delExcellentOrganization,
 } from "@/api/performance/excellentOrganization.js";
 import { get } from "@vueuse/core";
@@ -536,6 +606,7 @@ import useUserStore from "@/store/modules/user";
 const userStore = useUserStore();
 const router = useRouter();
 const { proxy } = getCurrentInstance();
+const userSelect = proxy.useUsers();
 const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
   "sys_normal_disable",
   "sys_user_sex",
@@ -544,9 +615,9 @@ const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
 
 const list = ref([]);
 const open = ref(false);
-const loading = ref(true);
-const logs = ref([]);
 const logOpen = ref(false);
+const logs = ref([]);
+const loading = ref(true);
 const showSearch = ref(true);
 const ids = ref([]);
 const single = ref(true);
@@ -572,7 +643,9 @@ const upload = reactive({
   // 设置上传的请求头部
   headers: { Authorization: getToken() },
   // 上传的地址
-  url: import.meta.env.VITE_APP_BASE_API + "/performance/excellent_organization/importData",
+  url:
+    import.meta.env.VITE_APP_BASE_API +
+    "/performance/excellent_organization/importData",
 });
 // 列显隐信息
 const columns = ref([
@@ -595,12 +668,13 @@ const columns = ref([
 
 const data = reactive({
   form: {},
+  logForm: [{}],
   queryParams: {
     page: 1,
     size: 10,
     competitionName: undefined,
     competitionLevel: undefined,
-    // userCode: userStore.name,
+    teacherCode: userStore.userName,
     annual: undefined,
     status: undefined,
     deptId: undefined,
@@ -608,21 +682,24 @@ const data = reactive({
   rules: {
     teacherName: [
       { required: true, message: "指导教师不能为空", trigger: "blur" },
-      // {
-      //   min: 2,
-      //   max: 10,
-      //   message: "作者姓名长度必须介于 2 和 10 之间",
-      //   trigger: "blur",
-      // },
     ],
     teacherCode: [
       { required: true, message: "教师工号不能为空", trigger: "blur" },
     ],
-    authorType: [
-      { required: true, message: "作者类型不能为空", trigger: "change" },
+    competitionName: [
+      { required: true, message: "竞赛名称不能为空", trigger: "change" },
     ],
-    thesisName: [
-      { required: true, message: "论文名称不能为空", trigger: "change" },
+    timeCompetition: [
+      { required: true, message: "竞赛时间不能为空", trigger: "change" },
+    ],
+    competitionLevel: [
+      { required: true, message: "竞赛级别不能为空", trigger: "change" },
+    ],
+    hostedBy: [
+      { required: true, message: "主办单位不能为空", trigger: "change" },
+    ],
+    organizer: [
+      { required: true, message: "承办单位不能为空", trigger: "change" },
     ],
     annual: [
       {
@@ -666,7 +743,8 @@ const data = reactive({
   ],
 });
 
-const { queryParams, form, rules, statusOptions, typeOptions } = toRefs(data);
+const { queryParams, form, logForm, rules, statusOptions, typeOptions } =
+  toRefs(data);
 
 /** 通过条件过滤节点  */
 const filterNode = (value, data) => {
@@ -686,13 +764,13 @@ function getDeptTree() {
 /** 查询明细列表 */
 function getList() {
   loading.value = true;
-  listExcellentOrganization(proxy.addDateRange(queryParams.value, dateRange.value)).then(
-    (res) => {
-      loading.value = false;
-      list.value = res.data;
-      total.value = res.total;
-    }
-  );
+  listExcellentOrganization(
+    proxy.addDateRange(queryParams.value, dateRange.value)
+  ).then((res) => {
+    loading.value = false;
+    list.value = res.data;
+    total.value = res.total;
+  });
 }
 /** 节点单击事件 */
 function handleNodeClick(data) {
@@ -781,23 +859,24 @@ function submitFileForm() {
 function reset() {
   form.value = {
     id: undefined,
-    isbn: undefined,
-    authorCode: undefined,
-    authorName: undefined,
-    authorType: undefined,
-    thesisName: undefined,
-    journalName: undefined,
-    issn: undefined,
-    journalInclusion: undefined,
-    timePublish: undefined,
-    otherCitations: undefined,
-    isJointIndustry: 1,
-    isJointInternational: 1,
-    isInterdiscipline: 1,
+    teacherCode: userStore.userName,
+    teacherName: userStore.name,
     status: 10,
+    deptId: userStore.deptId,
     annual: undefined,
+    workload: undefined,
   };
   proxy.resetForm("ExcellentOrganizationRef");
+}
+/** 重置操作表单 */
+function resetLog() {
+  logForm.value = [
+    {
+      id: undefined,
+      showContent: undefined,
+      timeExamine: undefined,
+    },
+  ];
 }
 /** 取消按钮 */
 function cancel() {
@@ -825,18 +904,18 @@ function handleUpdate(row) {
     form.password = "";
   });
 }
-/** 审核通过按钮操作 */
+/** 提交审核按钮操作 */
 function handleExamine(row) {
   var arr = [];
   if (row.id !== undefined) arr.push(row.id);
   const workIds = arr.length <= 0 ? ids.value : arr;
   proxy.$modal
-    .confirm("是否确认审核通过选中的数据项？")
+    .confirm("是否确认提交审核选中的数据项？")
     .then(function () {
-      return examine(workIds, 10);
+      return submit(workIds);
     })
     .then(() => {
-      getList();
+      getWorkList();
       proxy.$modal.msgSuccess("操作成功");
     })
     .catch(() => {});
@@ -877,7 +956,23 @@ function submitForm() {
     }
   });
 }
-
+function selectChangeParent(index) {
+  form.value.teacherCode = userSelect.value[index].userName;
+  form.value.teacherName = userSelect.value[index].name;
+  form.value.deptId = userSelect.value[index].deptId;
+}
+function handleView(row) {
+  resetLog();
+  logs.value = undefined;
+  const id = row.id;
+  getLog(id).then((response) => {
+    logs.value = response.data;
+    if (response.data.length === 0) {
+      logs.value = [{ showContent: "当前数据无审核记录" }];
+    }
+    logOpen.value = true;
+  });
+}
 getDeptTree();
 getList();
 </script>

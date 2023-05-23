@@ -54,11 +54,11 @@ export function examine(ids, status) {
 }
 export function getLog(id) {
     return request({
-      url: '/performance/examineLog/' + parseStrEmpty(id),
-      method: 'get'
+        url: '/performance/examineLog/' + parseStrEmpty(id),
+        method: 'get'
     })
-  }
-  
+}
+
 // 修改专利（著作权）授权情况
 export function updatePatents(data) {
     if (data.timeApproval !== undefined) {
@@ -82,5 +82,12 @@ export function submit(ids) {
         url: '/performance/patents/submit',
         method: 'post',
         data: data
+    })
+}
+
+export function getStudents() {
+    return request({
+        url: '/student',
+        method: 'get'
     })
 }
