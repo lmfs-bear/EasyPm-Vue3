@@ -573,6 +573,23 @@
         </div>
       </template>
     </el-dialog>
+    <!-- 审核日志详细 -->
+    <el-dialog title="审核详情" v-model="logOpen" width="700px" append-to-body>
+      <el-timeline>
+        <el-timeline-item
+          v-for="(item, index) in logs"
+          :key="index"
+          :timestamp="parseTime(item.timeExamine)"
+        >
+          {{ item.showContent }}
+        </el-timeline-item>
+      </el-timeline>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="logOpen = false">关 闭</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -595,6 +612,7 @@ import {
   addTeachingWork,
   updateTeachingWork,
   submit,
+  getLog,
   delTeachingWork,
 } from "@/api/performance/teachingWork";
 import { get } from "@vueuse/core";
@@ -611,6 +629,8 @@ const { sys_normal_disable, sys_user_sex, pm_school_year } = proxy.useDict(
 
 const userList = ref([]);
 const workList = ref([]);
+const logs = ref([]);
+const logOpen = ref(false);
 const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
@@ -657,6 +677,7 @@ const columns = ref([
 
 const data = reactive({
   form: {},
+  logForm: [{}],
   queryParams: {
     page: 1,
     size: 10,
@@ -772,7 +793,8 @@ const data = reactive({
   ],
 });
 
-const { queryParams, form, rules, statusOptions, typeOptions } = toRefs(data);
+const { queryParams, form, logForm, rules, statusOptions, typeOptions } =
+  toRefs(data);
 
 /** 通过条件过滤节点  */
 const filterNode = (value, data) => {
@@ -1012,6 +1034,26 @@ function submitForm() {
     }
   });
 }
-
+function resetLog() {
+  logForm.value = [
+    {
+      id: undefined,
+      showContent: undefined,
+      timeExamine: undefined,
+    },
+  ];
+}
+function handleView(row) {
+  resetLog();
+  logs.value = undefined;
+  const id = row.id;
+  getLog(id).then((response) => {
+    logs.value = response.data;
+    if (response.data.length === 0) {
+      logs.value = [{ showContent: "当前数据无审核记录" }];
+    }
+    logOpen.value = true;
+  });
+}
 getWorkList();
 </script>

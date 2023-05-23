@@ -122,7 +122,7 @@
               plain
               icon="Plus"
               @click="handleAdd"
-              v-hasPermi="['pm:thesis:add']"
+              v-hasPermi="['pm:textbook:add']"
               >新增</el-button
             >
           </el-col>
@@ -133,7 +133,7 @@
               icon="Edit"
               :disabled="single"
               @click="handleUpdate"
-              v-hasPermi="['pm:thesis:edit']"
+              v-hasPermi="['pm:textbook:edit']"
               >修改</el-button
             >
           </el-col>
@@ -144,7 +144,7 @@
               icon="Delete"
               :disabled="multiple"
               @click="handleDelete"
-              v-hasPermi="['pm:thesis:remove']"
+              v-hasPermi="['pm:textbook:remove']"
               >删除</el-button
             >
           </el-col>
@@ -155,7 +155,7 @@
               icon="document-checked"
               :disabled="multiple"
               @click="handleExamine"
-              v-hasPermi="['pm:thesis:examine']"
+              v-hasPermi="['pm:textbook:examine']"
               >审核通过</el-button
             >
           </el-col>
@@ -166,7 +166,7 @@
               icon="document-delete"
               :disabled="multiple"
               @click="handleReject"
-              v-hasPermi="['pm:thesis:examine']"
+              v-hasPermi="['pm:textbook:examine']"
               >审核不通过</el-button
             >
           </el-col>
@@ -176,7 +176,7 @@
               plain
               icon="Upload"
               @click="handleImport"
-              v-hasPermi="['pm:thesis:import']"
+              v-hasPermi="['pm:textbook:import']"
               >导入</el-button
             >
           </el-col>
@@ -186,7 +186,7 @@
               plain
               icon="Download"
               @click="handleExport"
-              v-hasPermi="['pm:thesis:export']"
+              v-hasPermi="['pm:textbook:export']"
               >导出</el-button
             >
           </el-col>
@@ -389,7 +389,7 @@
                   type="primary"
                   icon="Edit"
                   @click="handleUpdate(scope.row)"
-                  v-hasPermi="['pm:thesis:edit']"
+                  v-hasPermi="['pm:textbook:edit']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip content="审核详情" placement="top">
@@ -406,7 +406,7 @@
                   type="primary"
                   icon="document-checked"
                   @click="handleExamine(scope.row)"
-                  v-hasPermi="['pm:thesis:examine']"
+                  v-hasPermi="['pm:textbook:examine']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip content="审核不通过" placement="top">
@@ -415,7 +415,7 @@
                   type="primary"
                   icon="document-delete"
                   @click="handleReject(scope.row)"
-                  v-hasPermi="['pm:thesis:examine']"
+                  v-hasPermi="['pm:textbook:examine']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip
@@ -428,7 +428,7 @@
                   type="primary"
                   icon="Delete"
                   @click="handleDelete(scope.row)"
-                  v-hasPermi="['pm:thesis:remove']"
+                  v-hasPermi="['pm:textbook:remove']"
                 ></el-button>
               </el-tooltip>
             </template>
@@ -1139,13 +1139,11 @@ function handleUpdate(row) {
   const id = row.id || ids.value;
   getTextbook(id).then((response) => {
     form.value = response.data;
-    postOptions.value = response.posts;
-    roleOptions.value = response.roles;
-    form.value.postIds = response.postIds;
-    form.value.roleIds = response.roleIds;
+    if (response.data.timeBeRewarded === null) {
+      form.value.timeBeRewarded = undefined;
+    }
     open.value = true;
     title.value = "修改教材出版统计";
-    form.password = "";
   });
 }
 /** 审核通过按钮操作 */

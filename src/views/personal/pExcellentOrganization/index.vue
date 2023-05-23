@@ -1,31 +1,6 @@
 <template>
   <div class="app-container">
     <el-row :gutter="20">
-      <!--部门数据-->
-      <el-col :span="4" :xs="24">
-        <div class="head-container">
-          <el-input
-            v-model="deptName"
-            placeholder="请输入部门名称"
-            clearable
-            prefix-icon="Search"
-            style="margin-bottom: 20px"
-          />
-        </div>
-        <div class="head-container">
-          <el-tree
-            :data="deptOptions"
-            :props="{ label: 'label', children: 'children' }"
-            :expand-on-click-node="false"
-            :filter-node-method="filterNode"
-            ref="deptTreeRef"
-            node-key="id"
-            highlight-current
-            default-expand-all
-            @node-click="handleNodeClick"
-          />
-        </div>
-      </el-col>
       <!--数据-->
       <el-col :span="20" :xs="24">
         <el-form
@@ -552,6 +527,7 @@ import {
   addExcellentOrganization,
   updateExcellentOrganization,
   examine,
+  getLog,
   delExcellentOrganization,
 } from "@/api/performance/excellentOrganization.js";
 import { get } from "@vueuse/core";
@@ -569,6 +545,8 @@ const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
 const list = ref([]);
 const open = ref(false);
 const loading = ref(true);
+const logs = ref([]);
+const logOpen = ref(false);
 const showSearch = ref(true);
 const ids = ref([]);
 const single = ref(true);

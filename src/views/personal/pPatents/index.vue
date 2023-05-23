@@ -548,6 +548,7 @@ import {
   addPatents,
   updatePatents,
   examine,
+  getLog,
   submit,
   delPatents,
 } from "@/api/performance/patents.js";
@@ -566,6 +567,8 @@ const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
 const list = ref([]);
 const open = ref(false);
 const loading = ref(true);
+const logs = ref([]);
+const logOpen = ref(false);
 const showSearch = ref(true);
 const ids = ref([]);
 const single = ref(true);

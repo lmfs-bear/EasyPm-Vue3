@@ -21,7 +21,7 @@
 
           <el-form-item label="所属年度" prop="annual">
             <el-select
-              v-model="queryParams.schoolYear"
+              v-model="queryParams.annual"
               placeholder="请选择年度"
               clearable
               style="width: 240px"
@@ -86,7 +86,7 @@
               plain
               icon="Plus"
               @click="handleAdd"
-              v-hasPermi="['system:user:add']"
+              v-hasPermi="['pm:pTextbook:add']"
               >新增</el-button
             >
           </el-col>
@@ -97,7 +97,7 @@
               icon="Edit"
               :disabled="single"
               @click="handleUpdate"
-              v-hasPermi="['system:user:edit']"
+              v-hasPermi="['pm:pTextbook:edit']"
               >修改</el-button
             >
           </el-col>
@@ -108,7 +108,7 @@
               icon="Delete"
               :disabled="multiple"
               @click="handleDelete"
-              v-hasPermi="['system:user:remove']"
+              v-hasPermi="['pm:pTextbook:remove']"
               >删除</el-button
             >
           </el-col>
@@ -119,7 +119,7 @@
               icon="document-add"
               :disabled="multiple"
               @click="handleExamine"
-              v-hasPermi="['pm:workload:submit']"
+              v-hasPermi="['pm:pTextbook:submit']"
               >提交审核</el-button
             >
           </el-col>
@@ -129,7 +129,7 @@
               plain
               icon="Upload"
               @click="handleImport"
-              v-hasPermi="['pm:workload:import']"
+              v-hasPermi="['pm:pTextbook:import']"
               >导入</el-button
             >
           </el-col>
@@ -139,7 +139,7 @@
               plain
               icon="Download"
               @click="handleExport"
-              v-hasPermi="['system:user:export']"
+              v-hasPermi="['pm:pTextbook:export']"
               >导出</el-button
             >
           </el-col>
@@ -265,9 +265,22 @@
           <el-table-column
             label="获奖时间"
             align="center"
-            key="timeBeRewarded"
             prop="timeBeRewarded"
             v-if="columns[11].visible"
+            width="80"
+          >
+            <template #default="scope">
+              <span>{{
+                parseTime(scope.row.timeBeRewarded, "{y}-{m}-{d}")
+              }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            label="工作量分值"
+            align="center"
+            key="workload"
+            prop="workload"
+            width="90"
             :show-overflow-tooltip="true"
           />
           <el-table-column
@@ -318,7 +331,7 @@
           <el-table-column
             label="操作"
             align="center"
-            width="150"
+            width="180"
             class-name="small-padding fixed-width"
           >
             <template #default="scope">
@@ -328,7 +341,7 @@
                   type="primary"
                   icon="Edit"
                   @click="handleUpdate(scope.row)"
-                  v-hasPermi="['pm:workload:edit']"
+                  v-hasPermi="['pm:pTextbook:edit']"
                 ></el-button>
               </el-tooltip>
               <el-tooltip content="提交审核" placement="top">
@@ -337,9 +350,18 @@
                   type="primary"
                   icon="document-checked"
                   @click="handleExamine(scope.row)"
-                  v-hasPermi="['pm:workload:submit']"
+                  v-hasPermi="['pm:pTextbook:submit']"
                 ></el-button>
               </el-tooltip>
+              <el-tooltip content="审核详情" placement="top">
+                <el-button
+                  link
+                  type="primary"
+                  icon="View"
+                  @click="handleView(scope.row)"
+                ></el-button>
+              </el-tooltip>
+
               <el-tooltip
                 content="删除"
                 placement="top"
@@ -350,7 +372,7 @@
                   type="primary"
                   icon="Delete"
                   @click="handleDelete(scope.row)"
-                  v-hasPermi="['system:user:remove']"
+                  v-hasPermi="['pm:pTextbook:remove']"
                 ></el-button>
               </el-tooltip>
             </template>
@@ -366,7 +388,7 @@
       </el-col>
     </el-row>
 
-    <!-- 添加或修改教学工作量配置对话框 -->
+    <!-- 添加或修改教材出版统计配置对话框 -->
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
       <el-form
         :model="form"
@@ -439,6 +461,7 @@
                 v-model="form.isbn"
                 placeholder="请输入ISBN"
                 maxlength="60"
+                clearable
               ></el-input>
             </el-form-item>
           </el-col>
@@ -450,6 +473,7 @@
                 v-model="form.textbookName"
                 placeholder="请输入教材名称"
                 maxlength="20"
+                clearable
               />
             </el-form-item>
           </el-col>
@@ -476,18 +500,20 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="出版年月" prop="timePublish">
-              <el-input
+              <el-date-picker
                 v-model="form.timePublish"
-                placeholder="请输入出版年月"
-                maxlength="11"
-              />
+                type="date"
+                placeholder="选择出版年月"
+                @change="dateChange"
+              >
+              </el-date-picker>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="所属学年" prop="annual">
-              <el-select v-model="form.annual" placeholder="请选择学年">
+            <el-form-item label="所属年度" prop="annual">
+              <el-select v-model="form.annual" placeholder="请选择年度">
                 <el-option
                   v-for="dict in pm_year"
                   :key="dict.value"
@@ -569,6 +595,17 @@
             </el-form-item>
           </el-col>
         </el-row>
+        <el-col :span="12">
+          <el-form-item label="工作量" prop="workload">
+            <el-input-number
+              v-model="form.workload"
+              placeholder="为空则系统自动计算"
+              controls-position="right"
+              :precision="2"
+              style="width: 100%"
+            />
+          </el-form-item>
+        </el-col>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -644,27 +681,37 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 审核日志详细 -->
+    <el-dialog title="审核详情" v-model="logOpen" width="700px" append-to-body>
+      <el-timeline>
+        <el-timeline-item
+          v-for="(item, index) in logs"
+          :key="index"
+          :timestamp="parseTime(item.timeExamine)"
+        >
+          {{ item.showContent }}
+        </el-timeline-item>
+      </el-timeline>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="logOpen = false">关 闭</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup name="User">
 import { getToken } from "@/utils/auth";
-import {
-  changeUserStatus,
-  listUser,
-  resetUserPwd,
-  delUser,
-  getUser,
-  updateUser,
-  addUser,
-  deptTreeSelect,
-} from "@/api/system/user";
+import { deptTreeSelect } from "@/api/system/user";
 import {
   listTextbook,
   getTextbook,
   addTextbook,
   updateTextbook,
   examine,
+  getLog,
   submit,
   delTextbook,
 } from "@/api/performance/textbook";
@@ -681,8 +728,10 @@ const { sys_normal_disable, sys_user_sex, pm_year } = proxy.useDict(
 );
 
 const userList = ref([]);
+const logs = ref([]);
 const workList = ref([]);
 const open = ref(false);
+const logOpen = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
 const ids = ref([]);
@@ -709,7 +758,7 @@ const upload = reactive({
   // 设置上传的请求头部
   headers: { Authorization: getToken() },
   // 上传的地址
-  url: import.meta.env.VITE_APP_BASE_API + "/performance/Textbook/importData",
+  url: import.meta.env.VITE_APP_BASE_API + "/performance/textbook/importData",
 });
 // 列显隐信息
 const columns = ref([
@@ -730,8 +779,10 @@ const columns = ref([
   { key: 14, label: `状态`, visible: true },
   { key: 15, label: `创建时间`, visible: true },
 ]);
+
 const data = reactive({
   form: {},
+  logForm: [{}],
   queryParams: {
     page: 1,
     size: 10,
@@ -742,15 +793,12 @@ const data = reactive({
   },
   rules: {
     authorName: [
-      { required: true, message: "作者姓名不能为空", trigger: "blur" },
-      {
-        min: 2,
-        max: 10,
-        message: "作者姓名长度必须介于 2 和 10 之间",
-        trigger: "blur",
-      },
+      { required: true, message: "教师姓名不能为空", trigger: "blur" },
     ],
     authorCode: [
+      { required: true, message: "教师工号不能为空", trigger: "blur" },
+    ],
+    userCode: [
       { required: true, message: "作者工号不能为空", trigger: "blur" },
       {
         min: 5,
@@ -772,7 +820,7 @@ const data = reactive({
     annual: [
       {
         required: true,
-        message: "请选择学年",
+        message: "请选择年度",
         trigger: "change",
       },
     ],
@@ -828,6 +876,7 @@ const data = reactive({
 const {
   queryParams,
   form,
+  logForm,
   rules,
   statusOptions,
   typeOptions,
@@ -970,6 +1019,16 @@ function reset() {
   };
   proxy.resetForm("TextbookRef");
 }
+/** 重置操作表单 */
+function resetLog() {
+  logForm.value = [
+    {
+      id: undefined,
+      showContent: undefined,
+      timeExamine: undefined,
+    },
+  ];
+}
 /** 取消按钮 */
 function cancel() {
   open.value = false;
@@ -979,7 +1038,7 @@ function cancel() {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加教学工作量明细";
+  title.value = "添加教材出版统计";
 }
 /** 修改按钮操作 */
 function handleUpdate(row) {
@@ -987,13 +1046,11 @@ function handleUpdate(row) {
   const id = row.id || ids.value;
   getTextbook(id).then((response) => {
     form.value = response.data;
-    postOptions.value = response.posts;
-    roleOptions.value = response.roles;
-    form.value.postIds = response.postIds;
-    form.value.roleIds = response.roleIds;
+    if (response.data.timeBeRewarded === null) {
+      form.value.timeBeRewarded = undefined;
+    }
     open.value = true;
-    title.value = "修改教学工作量";
-    form.password = "";
+    title.value = "修改教材出版统计";
   });
 }
 /** 提交审核按钮操作 */
@@ -1030,6 +1087,25 @@ function submitForm() {
         });
       }
     }
+  });
+}
+
+function selectChangeParent(index) {
+  form.value.authorCode = userSelect.value[index].userName;
+  form.value.authorName = userSelect.value[index].name;
+  form.value.deptId = userSelect.value[index].deptId;
+}
+
+function handleView(row) {
+  resetLog();
+  logs.value = undefined;
+  const id = row.id;
+  getLog(id).then((response) => {
+    logs.value = response.data;
+    if (response.data.length === 0) {
+      logs.value = [{ showContent: "当前数据无审核记录" }];
+    }
+    logOpen.value = true;
   });
 }
 
