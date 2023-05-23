@@ -35,10 +35,10 @@
           v-show="showSearch"
           label-width="68px"
         >
-          <el-form-item label="学生姓名" prop="studentName">
+ <el-form-item label="教师姓名" prop="teacherName">
             <el-input
-              v-model="queryParams.studentName"
-              placeholder="请输入学生姓名"
+              v-model="queryParams.teacherName"
+              placeholder="请输入教师姓名"
               clearable
               style="width: 240px"
               @keyup.enter="handleQuery"
@@ -891,7 +891,7 @@ const data = reactive({
     competitionName: undefined,
     awardLevel: undefined,
     awardType: undefined,
-    // userCode: userStore.name,
+    teacherName: undefined,
     annual: undefined,
     type: 30,
     status: undefined,

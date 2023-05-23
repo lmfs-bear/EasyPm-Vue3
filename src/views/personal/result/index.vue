@@ -103,7 +103,7 @@
     <!-- <el-divider /> -->
     <el-row :gutter="20">
       <el-col :xs="24" :sm="24" :md="12" :lg="8">
-        <el-card class="update-log">
+        <el-card class="update-log" style="height: 557px">
           <template v-slot:header>
             <div class="clearfix">
               <span>绩效考核结果概览</span>
@@ -146,10 +146,10 @@
               :duration="2000"
             />
           </h3>
-          <p>绩效数据概览</p>
+          <p>绩效奖励金额</p>
           <br />
 
-          <el-collapse accordion>
+          <!-- <el-collapse accordion>
             <el-collapse-item title="2020-08-13 工作量分值+100">
               <ol>
                 <li>表格工具栏右侧添加刷新&显隐查询组件</li>
@@ -168,7 +168,7 @@
                 <li>若依前后端分离系统正式发布</li>
               </ol>
             </el-collapse-item>
-          </el-collapse>
+          </el-collapse> -->
         </el-card>
       </el-col>
 
@@ -232,7 +232,7 @@ const chart = ref();
 const chart1 = ref();
 
 import useUserStore from "@/store/modules/user";
-import { getResult } from "@/api/performance/result";
+import { getResult, getHistory } from "@/api/performance/result";
 import { CountTo } from "vue3-count-to";
 const userStore = useUserStore();
 
@@ -311,22 +311,23 @@ onMounted(() => {
       },
     ],
   });
-
-  myChart1.setOption({
-    //此处为图表的数据
-    xAxis: {
-      type: "category",
-      data: ["2019", "2020", "2021", "2022", "2023", "2024", "2025"],
-    },
-    yAxis: {
-      type: "value",
-    },
-    series: [
-      {
-        data: [150, 230, 224, 218, 135, 147, 260],
-        type: "line",
+  getHistory().then((res) => {
+    myChart1.setOption({
+      //此处为图表的数据
+      xAxis: {
+        type: "category",
+        data: res.data.xAxis,
       },
-    ],
+      yAxis: {
+        type: "value",
+      },
+      series: [
+        {
+          data: res.data.values,
+          type: "line",
+        },
+      ],
+    });
   });
 
   window.onresize = function () {

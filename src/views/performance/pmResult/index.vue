@@ -176,63 +176,6 @@
             prop="workload"
             v-if="columns[10].visible"
           />
-          <!-- <el-table-column
-            label="操作"
-            align="center"
-            width="180"
-            class-name="small-padding fixed-width"
-          >
-            <template #default="scope">
-              <el-tooltip content="编辑" placement="top">
-                <el-button
-                  link
-                  type="primary"
-                  icon="Edit"
-                  @click="handleUpdate(scope.row)"
-                  v-hasPermi="['pm:patents:edit']"
-                ></el-button>
-              </el-tooltip>
-              <el-tooltip content="审核详情" placement="top">
-                <el-button
-                  link
-                  type="primary"
-                  icon="View"
-                  @click="handleView(scope.row)"
-                ></el-button>
-              </el-tooltip>
-              <el-tooltip content="审核通过" placement="top">
-                <el-button
-                  link
-                  type="primary"
-                  icon="document-checked"
-                  @click="handleExamine(scope.row)"
-                  v-hasPermi="['pm:patents:examine']"
-                ></el-button>
-              </el-tooltip>
-              <el-tooltip content="审核不通过" placement="top">
-                <el-button
-                  link
-                  type="primary"
-                  icon="document-delete"
-                  @click="handleReject(scope.row)"
-                  v-hasPermi="['pm:patents:examine']"
-                ></el-button>
-              </el-tooltip>
-              <el-tooltip
-                content="删除"
-                placement="top"
-                v-if="scope.row.userId !== 1"
-              >
-                <el-button
-                  link
-                  type="primary"
-                  icon="Delete"
-                  @click="handleDelete(scope.row)"
-                  v-hasPermi="['pm:patents:remove']"
-                ></el-button>
-              </el-tooltip>
-            </template>
-          </el-table-column> -->
         </el-table>
         <pagination
           v-show="total > 0"
@@ -249,7 +192,7 @@
     </el-row>
     <el-row :gutter="20">
       <el-col :xs="24" :sm="24" :md="12" :lg="8">
-        <el-card class="update-log">
+        <el-card class="update-log" style="height: 556px">
           <template v-slot:header>
             <div class="clearfix">
               <span>绩效考核结果概览</span>
@@ -259,11 +202,11 @@
           <br />
 
           <el-select
-            v-model="result.annual"
+            v-model="paras.annual"
             placeholder="请指定年度"
             clearable
             style="width: 160px"
-            @change="Search"
+            @change="annualChange"
           >
             <el-option
               v-for="dict in pm_year"
@@ -272,30 +215,41 @@
               :value="dict.value"
             />
           </el-select>
+          <el-button
+            type="primary"
+            icon="Search"
+            @click="handleQuery2"
+            style="margin-left: 20px"
+            >搜索</el-button
+          >
+          <br />
           <br />
 
-          <br />
-          <h3 style="font: 24px font-bold">绩效数据页</h3>
-          <p>绩效数据概览</p>
-          <br />
-
-          <h3 style="font: 24px font-bold">
-            <CountTo :startVal="0" :endVal="result.workload" :duration="2000" />
-          </h3>
-          <p>年度总工作量</p>
-          <br />
-          <h3 style="font: 24px font-bold">
-            <CountTo
-              prefix="$"
-              :startVal="0"
-              :endVal="result.sum"
-              :duration="2000"
+          <div class="head-container">
+            <el-input
+              v-model="deptName2"
+              placeholder="请输入部门名称"
+              clearable
+              prefix-icon="Search"
+              style="margin-bottom: 20px"
             />
-          </h3>
-          <p>绩效数据概览</p>
+          </div>
+          <div class="head-container">
+            <el-tree
+              :data="deptOptions"
+              :props="{ label: 'label', children: 'children' }"
+              :expand-on-click-node="false"
+              :filter-node-method="filterNode"
+              ref="deptTreeRef"
+              node-key="id"
+              highlight-current
+              default-expand-all
+              @node-click="handleNodeClick2"
+            />
+          </div>
           <br />
 
-          <el-collapse accordion>
+          <!-- <el-collapse accordion>
             <el-collapse-item title="2020-08-13 工作量分值+100">
               <ol>
                 <li>表格工具栏右侧添加刷新&显隐查询组件</li>
@@ -314,7 +268,7 @@
                 <li>若依前后端分离系统正式发布</li>
               </ol>
             </el-collapse-item>
-          </el-collapse>
+          </el-collapse> -->
         </el-card>
       </el-col>
 
@@ -322,7 +276,7 @@
         <el-card class="update-log">
           <template v-slot:header>
             <div class="clearfix">
-              <span>工作量分布图</span>
+              <span>工作量完成情况分布图</span>
             </div>
           </template>
           <div
@@ -333,7 +287,7 @@
       </el-col>
     </el-row>
     <br />
-    <el-row :gutter="20">
+    <!-- <el-row :gutter="20">
       <el-col :xs="24" :sm="24" :md="36" :lg="24">
         <el-card class="update-log">
           <template v-slot:header>
@@ -348,17 +302,20 @@
           ></div>
         </el-card>
       </el-col>
-    </el-row>
+    </el-row> -->
   </div>
 </template>
 
 <script setup name="User">
 import * as echarts from "echarts";
 const chart = ref();
-const chart1 = ref();
 
 import useUserStore from "@/store/modules/user";
-import { getResult, listAnnualResult } from "@/api/performance/result";
+import {
+  getResult,
+  listAnnualResult,
+  findAnnualResult,
+} from "@/api/performance/result";
 import { CountTo } from "vue3-count-to";
 const userStore = useUserStore();
 
@@ -389,21 +346,24 @@ const result = reactive({
 onMounted(() => {
   console.log("我创建了");
   let myChart = echarts.init(chart.value);
-  let myChart1 = echarts.init(chart1.value);
   myChart.setOption({
     //此处为图表的数据
+    title: {
+      text: "工作量完成情况分布图",
+      left: "center",
+    },
     tooltip: {
       trigger: "item",
     },
     legend: {
-      bottom: "1%",
-      left: "center",
+      orient: "vertical",
+      left: "left",
     },
     series: [
       {
         name: "工作量分布",
         type: "pie",
-        radius: ["40%", "70%"],
+        radius: "50%",
         avoidLabelOverlap: false,
         itemStyle: {
           borderRadius: 10,
@@ -415,42 +375,18 @@ onMounted(() => {
           position: "center",
         },
         emphasis: {
-          label: {
-            show: true,
-            fontSize: 20,
-            fontWeight: "bold",
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: "rgba(0, 0, 0, 0.5)",
           },
         },
-        labelLine: {
-          show: false,
-        },
         data: [
-          { value: 1048, name: "教学工作量" },
-          { value: 735, name: "教材出版" },
-          { value: 580.2, name: "教研论文" },
-          { value: 484, name: "本科生专利（著作权）授权" },
-          { value: 300, name: "本科生参加学科竞赛获奖" },
-          { value: 300, name: "本科生参加创新活动、技能竞赛获奖" },
-          { value: 300, name: "本科生参加文艺、体育竞赛获奖" },
-          { value: 300, name: "承办省级以上学科竞赛及获优秀组织奖" },
+          { value: 356, name: "完成工作量低于80%的人数" },
+          { value: 735, name: "完成工作量80%～90%的人数" },
+          { value: 735, name: "完成工作量91%～99%的人数" },
+          { value: 735, name: "完成工作量100%的人数" },
         ],
-      },
-    ],
-  });
-
-  myChart1.setOption({
-    //此处为图表的数据
-    xAxis: {
-      type: "category",
-      data: ["2019", "2020", "2021", "2022", "2023", "2024", "2025"],
-    },
-    yAxis: {
-      type: "value",
-    },
-    series: [
-      {
-        data: [150, 230, 224, 218, 135, 147, 260],
-        type: "line",
       },
     ],
   });
@@ -532,6 +468,8 @@ import { get } from "@vueuse/core";
 const router = useRouter();
 const userSelect = proxy.useUsers();
 
+const annual = undefined;
+const deptId = undefined;
 const list = ref([]);
 const open = ref(false);
 const logOpen = ref(false);
@@ -545,6 +483,7 @@ const total = ref(0);
 const title = ref("");
 const dateRange = ref([]);
 const deptName = ref("");
+const deptName2 = ref("");
 const deptOptions = ref(undefined);
 const initPassword = ref(undefined);
 const postOptions = ref([]);
@@ -590,6 +529,7 @@ const data = reactive({
     annual: undefined,
     deptId: undefined,
   },
+  paras: { annual: undefined, deptId: undefined },
   rules: {
     teacherName: [
       { required: true, message: "学生姓名不能为空", trigger: "blur" },
@@ -617,49 +557,9 @@ const data = reactive({
       },
     ],
   },
-  statusOptions: [
-    {
-      label: "未提交审核",
-      value: 10,
-    },
-    {
-      label: "待系主任审核",
-      value: 30,
-    },
-    {
-      label: "待教学办审核",
-      value: 40,
-    },
-    {
-      label: "审核通过",
-      value: 50,
-    },
-    {
-      label: "审核驳回",
-      value: 60,
-    },
-  ],
-  typeOptions: [
-    {
-      label: "发明专利",
-      value: 0,
-    },
-    {
-      label: "实用新型专利",
-      value: 10,
-    },
-    {
-      label: "外观设计专利",
-      value: 20,
-    },
-    {
-      label: "著作权",
-      value: 30,
-    },
-  ],
 });
 
-const { queryParams, form, logForm, rules, statusOptions, typeOptions } =
+const { queryParams, form, paras, logForm, rules, statusOptions, typeOptions } =
   toRefs(data);
 
 /** 通过条件过滤节点  */
@@ -691,10 +591,59 @@ function handleNodeClick(data) {
   queryParams.value.deptId = data.id;
   handleQuery();
 }
+/** 节点单击事件 */
+function handleNodeClick2(data) {
+  paras.value.deptId = data.id;
+}
 /** 搜索按钮操作 */
 function handleQuery() {
   queryParams.value.page = 1;
   getList();
+}
+/** 搜索按钮操作 */
+function handleQuery2() {
+  findAnnualResult(paras.value).then((res) => {
+    let myChart = echarts.init(chart.value);
+    myChart.setOption({
+      //此处为图表的数据
+      title: {
+        text: "工作量完成情况分布图",
+        left: "center",
+      },
+      tooltip: {
+        trigger: "item",
+      },
+      legend: {
+        orient: "vertical",
+        left: "left",
+      },
+      series: [
+        {
+          name: "工作量分布",
+          type: "pie",
+          radius: "50%",
+          avoidLabelOverlap: false,
+          itemStyle: {
+            borderRadius: 10,
+            borderColor: "#fff",
+            borderWidth: 2,
+          },
+          label: {
+            show: false,
+            position: "center",
+          },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: "rgba(0, 0, 0, 0.5)",
+            },
+          },
+          data: res.data,
+        },
+      ],
+    });
+  });
 }
 /** 重置按钮操作 */
 function resetQuery() {
@@ -884,26 +833,8 @@ function submitForm() {
     }
   });
 }
-function selectChangeParent(index) {
-  form.value.teacherCode = userSelect.value[index].userName;
-  form.value.teacherName = userSelect.value[index].name;
-  form.value.deptId = userSelect.value[index].deptId;
-}
-function selectChangeStudent(index) {
-  form.value.teacherCode = studentOptions.value[index].teacherCode;
-  form.value.teacherName = studentOptions.value[index].teacherName;
-}
-function handleView(row) {
-  resetLog();
-  logs.value = undefined;
-  const id = row.id;
-  getLog(id).then((response) => {
-    logs.value = response.data;
-    if (response.data.length === 0) {
-      logs.value = [{ showContent: "当前数据无审核记录" }];
-    }
-    logOpen.value = true;
-  });
+function annualChange(annual) {
+  paras.annual = annual;
 }
 getDeptTree();
 getList();

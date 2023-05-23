@@ -35,10 +35,10 @@
           v-show="showSearch"
           label-width="68px"
         >
-          <el-form-item label="学生姓名" prop="studentName">
+          <el-form-item label="教师姓名" prop="teacherName">
             <el-input
-              v-model="queryParams.studentName"
-              placeholder="请输入学生姓名"
+              v-model="queryParams.teacherName"
+              placeholder="请输入教师姓名"
               clearable
               style="width: 240px"
               @keyup.enter="handleQuery"
@@ -227,7 +227,7 @@
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="50" align="center" />
-                    <el-table-column
+          <el-table-column
             label="指导老师"
             align="center"
             key="teacherName"
@@ -237,7 +237,9 @@
             width="120"
           >
             <template #default="scope">
-              <span>{{ scope.row.teacherCode }}-{{ scope.row.teacherName }}</span>
+              <span
+                >{{ scope.row.teacherCode }}-{{ scope.row.teacherName }}</span
+              >
             </template>
           </el-table-column>
           <el-table-column
@@ -682,7 +684,11 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="审核状态">
-              <el-select v-model="form.status" placeholder="请选择状态" :disabled=true>
+              <el-select
+                v-model="form.status"
+                placeholder="请选择状态"
+                :disabled="true"
+              >
                 <el-option
                   v-for="(item, index) in statusOptions"
                   :key="index"
@@ -694,7 +700,8 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row>  <el-col :span="12">
+        <el-row>
+          <el-col :span="12">
             <el-form-item label="工作量" prop="workload">
               <el-input-number
                 v-model="form.workload"
@@ -703,8 +710,8 @@
                 :precision="2"
                 style="width: 100%"
               />
-            </el-form-item>
-          </el-col></el-row>
+            </el-form-item> </el-col
+        ></el-row>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -891,6 +898,7 @@ const data = reactive({
     competitionName: undefined,
     awardLevel: undefined,
     awardType: undefined,
+    teacherName: undefined,
     // userCode: userStore.name,
     annual: undefined,
     type: 10,

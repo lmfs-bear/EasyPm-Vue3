@@ -17,4 +17,17 @@ export function getResult(annual) {
     })
 }
 
+export function findAnnualResult(query) {
+    return request({
+        url: '/performance/result/getAggregation',
+        method: 'get',
+        params: query
+    })
+}
 
+export function getHistory() {
+    return request({
+        url: '/performance/result/getHistory',
+        method: 'get',
+    })
+}
