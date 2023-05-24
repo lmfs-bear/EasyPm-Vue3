@@ -131,7 +131,7 @@
               key="educationThesis"
               prop="educationThesis"
               v-if="columns[4].visible"
-              width="80"
+              width="40"
             />
             <el-table-column
               label="本科生专利（著作权）授权"
@@ -175,6 +175,12 @@
             key="workload"
             prop="workload"
             v-if="columns[10].visible"
+          />
+           <el-table-column
+            label="所属年度"
+            align="center"
+            key="annual"
+            prop="annual"
           />
         </el-table>
         <pagination
@@ -670,11 +676,11 @@ function handleDelete(row) {
 /** 导出按钮操作 */
 function handleExport() {
   proxy.download(
-    "/performance/patents/export",
+    "/performance/result/export",
     {
       ...queryParams.value,
     },
-    `本科生专利（著作权）授权情况一览表.xlsx`
+    `年度绩效考核统计表.xlsx`
   );
 }
 /** 选择条数  */

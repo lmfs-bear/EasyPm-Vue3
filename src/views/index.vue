@@ -38,17 +38,14 @@
       </el-col>
     </el-row> -->
     <el-row :gutter="20">
-      <el-col :sm="24" :lg="12" style="padding-left: 20px">
-        <h2>后台管理框架</h2>
+      <el-col :sm="24" :lg="24" style="padding-left: 20px">
+        <h2>基于微服务架构的学院绩效管理系统</h2>
         <p>
-          一直想做一款后台管理系统，看了很多优秀的开源项目但是发现没有合适自己的。于是利用空闲休息时间开始自己写一套后台系统。如此有了FZU绩效管理系统，她可以用于所有的Web应用程序，如网站管理后台，网站会员中心，CMS，CRM，OA等等，当然，您也可以对她进行深度定制，以做出更强系统。所有前端后台代码封装过后十分精简易上手，出错概率低。同时支持移动客户端访问。系统会陆续更新一些实用功能。
+            随着高校绩效工资的推行，教师的绩效和绩效管理工作受到了广泛关注。教师绩效考核指标体系复杂，涉及教学、科研、人才培养等方面，计算复杂。另一方面，目前还有很多高校绩效管理工作信息化程度不高。通过信息化手段提高沟通效率，同时还能加强绩效规范管理，为高校实施科学的管理方法提供创新思路。因此，建立一套符合当前信息化时代要求的学院绩效管理系统意义重大。
+本文以学院绩效管理业务为出发点，采用以Dubbo框架为核心的微服务技术栈，开发实现了学院绩效管理系统。系统分为个人绩效管理模块、绩效审核管理模块和系统管理模块。其中，个人绩效管理和绩效审核管理又分为教学工作量管理、教材出版管理、发表教研论文管理、承办学科竞赛及获优秀组织奖管理、年度绩效考核结果查询等。在个人绩效管理模块和绩效审核管理模块中，系统提供方便的Excel数据导入/导出功能。系统管理模块包含部门管理、角色管理、用户管理、岗位管理、通知公告管理以及日志管理。
+本系统基于前后端分离架构，采用技术组合为Vue、Dubbo、SpringBoot、Spring Data Jpa、Spring Security，整个系统模块都在该架构上进行开发。为了对系统进行优化以达到提高性能的目的，引入了注册中心Zookeepper、缓存中间件Redis、消息队列Kafka等技术。
         </p>
-        <p>
-          <b>当前版本:</b> <span>v{{ version }}</span>
-        </p>
-        <p>
-          <el-tag type="danger">&yen;免费开源</el-tag>
-        </p>
+
         <!-- <p>
           <el-button
             type="primary"
@@ -66,69 +63,21 @@
         </p> -->
       </el-col>
 
-      <el-col :sm="24" :lg="12" style="padding-left: 50px">
-        <el-row>
-          <el-col :span="12">
-            <h2>技术选型</h2>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="6">
-            <h4>后端技术</h4>
-            <ul>
-              <li>SpringBoot</li>
-              <li>Spring Security</li>
-              <li>JWT</li>
-              <li>MyBatis</li>
-              <li>Druid</li>
-              <li>Fastjson</li>
-              <li>...</li>
-            </ul>
-          </el-col>
-          <el-col :span="6">
-            <h4>前端技术</h4>
-            <ul>
-              <li>Vue</li>
-              <li>Vuex</li>
-              <li>Element-ui</li>
-              <li>Axios</li>
-              <li>Sass</li>
-              <li>Quill</li>
-              <li>...</li>
-            </ul>
-          </el-col>
-        </el-row>
-      </el-col>
+   
     </el-row>
     <el-divider />
     <el-row :gutter="20">
-      <el-col :xs="24" :sm="24" :md="12" :lg="8">
+      <!-- <el-col :xs="24" :sm="24" :md="12" :lg="8">
         <el-card class="update-log">
           <template v-slot:header>
             <div class="clearfix">
               <span>联系信息</span>
             </div>
           </template>
-          <!-- <div class="body">
-            <p>
-              <i class="el-icon-s-promotion"></i> 官网：<el-link
-                href="http://www.ruoyi.vip"
-                target="_blank"
-                >http://www.ruoyi.vip</el-link
-              >
-            </p>
-            <p>
-              <i class="el-icon-user-solid"></i> QQ群：<s>满937441</s> <s>满887144332</s>
-              <s>满180251782</s> <s>满104180207</s> <s>满186866453</s> <s>满201396349</s>
-              <s>满101456076</s> <s>满101539465</s> <s>满264312783</s> <s>满167385320</s> 
-              <s>满104748341</s> <s>满160110482</s> <s>满170801498</s> <a href="https://jq.qq.com/?_wv=1027&k=eCx8eyoJ" target="_blank">
-                108482800</a
-              >
-            </p>
-          </div> -->
+
         </el-card>
-      </el-col>
-      <el-col :xs="24" :sm="24" :md="12" :lg="8">
+      </el-col> -->
+      <!-- <el-col :xs="24" :sm="24" :md="12" :lg="8">
         <el-card class="update-log">
           <template v-slot:header>
             <div class="clearfix">
@@ -889,7 +838,7 @@
             >
           </div>
         </el-card>
-      </el-col>
+      </el-col> -->
     </el-row>
   </div>
 </template>
