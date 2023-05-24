@@ -41,10 +41,11 @@ export function delCompetition(id) {
 }
 
 //审核
-export function examine(ids, status) {
+export function examine(ids, status, reason) {
     const data = {
         ids,
-        status
+        status,
+        reason,
     }
     return request({
         url: '/performance/academic_competition/examine',

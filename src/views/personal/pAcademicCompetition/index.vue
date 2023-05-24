@@ -10,7 +10,7 @@
           v-show="showSearch"
           label-width="68px"
         >
-          <el-form-item label="学生姓名" prop="studentName">
+          <!-- <el-form-item label="学生姓名" prop="studentName">
             <el-input
               v-model="queryParams.studentName"
               placeholder="请输入学生姓名"
@@ -18,7 +18,7 @@
               style="width: 240px"
               @keyup.enter="handleQuery"
             />
-          </el-form-item>
+          </el-form-item> -->
 
           <el-form-item label="竞赛名称" prop="competitionName">
             <el-input

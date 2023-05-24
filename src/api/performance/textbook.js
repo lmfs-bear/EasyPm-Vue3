@@ -46,10 +46,11 @@ export function delTextbook(id) {
 }
 
 //审核
-export function examine(ids, status) {
+export function examine(ids, status, reason) {
   const data = {
     ids,
-    status
+    status,
+    reason,
   }
   return request({
     url: '/performance/textbook/examine',

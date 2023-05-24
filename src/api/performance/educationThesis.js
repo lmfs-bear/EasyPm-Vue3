@@ -40,11 +40,13 @@ export function delEducationThesis(id) {
     })
 }
 
+
 //审核
-export function examine(ids, status) {
+export function examine(ids, status, reason) {
     const data = {
         ids,
-        status
+        status,
+        reason,
     }
     return request({
         url: '/performance/education_thesis/examine',

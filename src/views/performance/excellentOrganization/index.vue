@@ -976,12 +976,22 @@ function handleReject(row) {
   if (row.id !== undefined) arr.push(row.id);
   const workIds = arr.length <= 0 ? ids.value : arr;
   proxy.$modal
-    .confirm("是否确认驳回选中的数据项？")
-    .then(function () {
-      return examine(workIds, 20);
+    .promptReject("是否确认驳回选中的数据项？驳回原因：", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      inputErrorMessage: "原因不能为空",
+      inputValidator: (value) => {
+        // 点击按钮时，对文本框里面的值进行验证
+        if (!value) {
+          return inputErrorMessage;
+        }
+      },
+    })
+    .then(function (value) {
+      return examine(workIds, 20, value.value);
     })
     .then(() => {
-      getList();
+      getWorkList();
       proxy.$modal.msgSuccess("操作成功");
     })
     .catch(() => {});
